@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 
-export default function useSocket(userId) {
+export default function useSocketHook(userId) {
   const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL;
   const [socket, setSocket] = useState(null);
   const [error, setError] = useState(null);

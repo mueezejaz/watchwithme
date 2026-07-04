@@ -1,15 +1,9 @@
 "use client";
 import { useState } from "react";
-import useSocket from "./hooks/useSocket";
-import useLocalStorage from "./hooks/useLocalStorage";
-import { nanoid } from "nanoid";
+import { useSocket } from "./context/SocketContext.js";
 export default function Home() {
   const [input, setinput] = useState("");
-  const [userId, setUserId] = useLocalStorage("id", () => {
-    return nanoid();
-  });
-  console.log("hello world");
-  const [socket, error] = useSocket(userId);
+  const { socket, error } = useSocket();
   return (
     <>
       <h1> hello world </h1>
