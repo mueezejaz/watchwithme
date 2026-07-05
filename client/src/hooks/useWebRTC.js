@@ -1,7 +1,6 @@
-"use client";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useUsers } from "@/app/context/UsersContext";
-import { useMessages } from "@/app/context/MessagesContext";
+import { useUsers } from "../context/UsersContext.jsx";
+import { useMessages } from "../context/MessagesContext.jsx";
 
 const ICE_SERVERS = [{ urls: "stun:stun.l.google.com:19302" }];
 

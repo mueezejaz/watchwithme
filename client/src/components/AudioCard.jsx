@@ -1,6 +1,5 @@
-"use client";
 import { useRef, useEffect } from "react";
-import { Card } from "@/app/components/ui/card";
+import { Card } from "./ui/card.jsx";
 
 function MicIcon() {
   return (

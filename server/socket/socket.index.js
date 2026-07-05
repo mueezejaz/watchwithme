@@ -1,7 +1,7 @@
 export default function registerSocket(io) {
   io.on("connection", (socket) => {
     const userId = socket.handshake.auth.userId;
-
+    console.log("new user connected", socket.id);
     socket.join(userId);
 
     socket.on("join-room", ({ roomId, name }) => {

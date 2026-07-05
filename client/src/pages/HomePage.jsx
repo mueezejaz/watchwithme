@@ -1,7 +1,6 @@
-"use client";
 import { useState } from "react";
-import { useSocket } from "./context/SocketContext.js";
-export default function Home() {
+import { useSocket } from "../context/SocketContext.jsx";
+export default function HomePage() {
   const [input, setinput] = useState("");
   const { socket, error } = useSocket();
   return (

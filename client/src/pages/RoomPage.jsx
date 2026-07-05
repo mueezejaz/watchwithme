@@ -1,6 +1,6 @@
-"use client";
-import { use, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useState } from "react";
+import { useParams } from "react-router-dom";
 import {
   Card,
   CardHeader,
@@ -8,15 +8,15 @@ import {
   CardDescription,
   CardContent,
   CardFooter,
-} from "@/app/components/ui/card";
-import { Button } from "@/app/components/ui/button";
-import AudioCard from "@/app/components/AudioCard";
-import useMediaDevices from "@/app/hooks/useMediaDevices";
-import useWebRTC from "@/app/hooks/useWebRTC";
-import { useSocket } from "@/app/context/SocketContext";
-import { UsersProvider, useUsers } from "@/app/context/UsersContext";
-import { MessagesProvider, useMessages } from "@/app/context/MessagesContext";
-import useLocalStorage from "@/app/hooks/useLocalStorage";
+} from "../components/ui/card.jsx";
+import { Button } from "../components/ui/button.jsx";
+import AudioCard from "../components/AudioCard.jsx";
+import useMediaDevices from "../hooks/useMediaDevices.js";
+import useWebRTC from "../hooks/useWebRTC.js";
+import { useSocket } from "../context/SocketContext.jsx";
+import { UsersProvider, useUsers } from "../context/UsersContext.jsx";
+import { MessagesProvider, useMessages } from "../context/MessagesContext.jsx";
+import useLocalStorage from "../hooks/useLocalStorage.js";
 
 function MicIcon() {
   return (
@@ -140,8 +140,8 @@ function RoomJoined(props) {
   );
 }
 
-export default function RoomPage({ params }) {
-  const { id } = use(params);
+export default function RoomPage() {
+  const { id } = useParams();
   const [name, setName] = useState("");
   const [hasJoined, setHasJoined] = useState(false);
   const { socket } = useSocket();

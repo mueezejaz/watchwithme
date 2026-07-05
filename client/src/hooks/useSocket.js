@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 
 export default function useSocketHook(userId) {
-  const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL;
+  const SERVER_URL = "http://localhost:3001";
+  console.log("this is ", SERVER_URL);
   const [socket, setSocket] = useState(null);
   const [error, setError] = useState(null);
 

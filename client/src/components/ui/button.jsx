@@ -1,4 +1,4 @@
-import { cn } from "@/app/lib/utils";
+import { cn } from "../../lib/utils.js";
 
 const variantStyles = {
   default: "bg-primary text-white shadow hover:opacity-90",

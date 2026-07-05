@@ -1,13 +1,13 @@
-"use client";
 import { createContext, useContext, useEffect, useState } from "react";
-import useSocketHook from "../hooks/useSocket";
-import useLocalStorage from "../hooks/useLocalStorage";
+import useSocketHook from "../hooks/useSocket.js";
+import useLocalStorage from "../hooks/useLocalStorage.js";
 import { nanoid } from "nanoid";
 
 const SocketContext = createContext(null);
 
 export function SocketContextProvider({ children }) {
   const [userId, setUserId] = useLocalStorage("id", () => nanoid());
+  console.log("this is id we are giving", userId);
   const [socket, error] = useSocketHook(userId);
   return (
     <SocketContext.Provider value={{ socket, error }}>
