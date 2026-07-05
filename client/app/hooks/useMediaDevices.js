@@ -8,6 +8,8 @@ export default function useMediaDevices() {
   const [soundLevel, setSoundLevel] = useState(0);
   const [isMicOn, setIsMicOn] = useState(false);
   const [permissionGranted, setPermissionGranted] = useState(false);
+  const [permissionDenied, setPermissionDenied] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
   const [error, setError] = useState(null);
 
   const audioContextRef = useRef(null);
@@ -15,6 +17,10 @@ export default function useMediaDevices() {
   const animationFrameRef = useRef(null);
 
   const requestPermission = useCallback(async () => {
+    setError(null);
+    setPermissionDenied(false);
+    setIsBlocked(false);
+
     try {
       const userStream = await navigator.mediaDevices.getUserMedia({
         audio: true,
@@ -36,7 +42,28 @@ export default function useMediaDevices() {
         setSelectedDeviceId(defaultDevice.deviceId);
       }
     } catch (err) {
-      setError(err.message || "Failed to access microphone");
+      if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+        setPermissionDenied(true);
+        try {
+          const permStatus = await navigator.permissions.query({ name: "microphone" });
+          if (permStatus.state === "denied") {
+            setIsBlocked(true);
+            setError(
+              "Microphone access is blocked. To enable it:\n\n" +
+              "Chrome: Settings → Privacy & Security → Site Settings → Microphone\n" +
+              "Firefox: Settings → Privacy & Security → Permissions → Microphone\n" +
+              "Edge: Settings → Cookies & Site Permissions → Microphone"
+            );
+          } else {
+            setError("Microphone access was denied. Click retry to try again.");
+          }
+        } catch {
+          setPermissionDenied(true);
+          setError("Microphone access was denied. Click retry to try again.");
+        }
+      } else {
+        setError(err.message || "Failed to access microphone");
+      }
     }
   }, [selectedDeviceId]);
 
@@ -126,6 +153,8 @@ export default function useMediaDevices() {
     soundLevel,
     isMicOn,
     permissionGranted,
+    permissionDenied,
+    isBlocked,
     error,
     requestPermission,
     toggleMic,
