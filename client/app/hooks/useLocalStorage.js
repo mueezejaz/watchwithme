@@ -1,31 +1,30 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const prefixKey = "sync_watch";
+
+function readValue(key, initialValue) {
+  try {
+    const jsonValue = localStorage.getItem(key);
+    if (jsonValue != null) return JSON.parse(jsonValue);
+  } catch {
+    console.log("some thing went wrong while getting local storage value");
+  }
+  return typeof initialValue === "function" ? initialValue() : initialValue;
+}
+
 export default function useLocalStorage(key, initialValue) {
   const fullKey = prefixKey + key;
-  const [data, setData] = useState(null);
+  const [data, setData] = useState(readValue(fullKey, initialValue));
+  const initialized = useRef(false);
 
   useEffect(() => {
-    const jsonValue = localStorage.getItem(fullKey);
-    console.log("this is json value", jsonValue);
-    if (jsonValue != null) {
-      setData(JSON.parse(jsonValue));
-      return;
-    }
-    if (typeof initialValue === "function") {
-      setData(() => {
-        return initialValue();
-      });
-      return;
-    } else {
-      setData(initialValue);
-    }
-  }, [fullKey]);
+    if (initialized.current) return;
+    initialized.current = true;
+  }, []);
+
   useEffect(() => {
-    if (data === null) return;
     localStorage.setItem(fullKey, JSON.stringify(data));
-    console.log("saved");
   }, [data]);
 
   return [data, setData];
