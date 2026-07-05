@@ -3,6 +3,7 @@ export default function registerSocket(io) {
     const userId = socket.handshake.auth.userId;
 
     console.log("New user:", userId);
+    socket.join(userId);
     socket.on("message", (message) => {
       console.log(message);
     });
