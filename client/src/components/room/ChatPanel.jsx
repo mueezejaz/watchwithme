@@ -18,7 +18,7 @@ export default function ChatPanel({ messages, myUserId, onSend }) {
   };
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex-1 space-y-3 overflow-y-auto p-4">
         {messages.length === 0 && (
           <p className="text-center text-sm text-text-secondary">No messages yet. Say hello!</p>

@@ -94,7 +94,7 @@ function RoomLayoutInner({
           />
         </section>
 
-        <aside className="flex flex-col border-border md:w-80 md:border-l">
+        <aside className="flex min-h-0 flex-col overflow-hidden border-border md:w-80 md:border-l">
           <Toolbar
             className="hidden items-center justify-center gap-1 border-b border-border px-3 py-2 md:flex"
             isMicOn={isMicOn}
@@ -103,7 +103,7 @@ function RoomLayoutInner({
             onInvite={() => setInviteOpen(true)}
           />
 
-          <Tabs defaultValue="chat" value={activeTab} onValueChange={setActiveTab} className="flex flex-1 flex-col">
+          <Tabs defaultValue="chat" value={activeTab} onValueChange={setActiveTab} className="flex min-h-0 flex-1 flex-col">
             <div className="flex justify-center border-b border-border px-3 py-2">
               <TabsList activeValue={activeTab} onValueChange={setActiveTab}>
                 <TabsTrigger value="chat" activeValue={activeTab} onValueChange={setActiveTab} className="gap-1.5">
@@ -125,7 +125,7 @@ function RoomLayoutInner({
               />
             </TabsContent>
 
-            <TabsContent value="participants" activeValue={activeTab}>
+            <TabsContent value="participants" activeValue={activeTab} className="flex flex-col">
               <ParticipantsPanel
                 users={users}
                 myName={myName}
