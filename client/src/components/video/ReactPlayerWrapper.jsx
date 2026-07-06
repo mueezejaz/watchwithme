@@ -112,7 +112,7 @@ export default function ReactPlayerWrapper({
 
       <button
         onClick={(e) => { e.stopPropagation(); onToggleFullscreen?.(); }}
-        className="absolute bottom-2 right-2 z-30 flex h-9 w-9 items-center justify-center rounded-md bg-black/60 text-white opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100 hover:bg-black/80"
+        className={`absolute bottom-2 right-2 z-30 flex h-9 w-9 items-center justify-center rounded-md bg-black/60 text-white transition-opacity hover:bg-black/80 ${isFullscreen ? "opacity-100" : "opacity-100 md:opacity-0 md:group-hover:opacity-100"}`}
         title={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
       >
         {isFullscreen ? <MinimizeIcon size={16} /> : <MaximizeIcon size={16} />}

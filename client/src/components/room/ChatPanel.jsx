@@ -1,10 +1,25 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "../ui/button.jsx";
 import { SendIcon } from "../../lib/icons.jsx";
+import EmojiPicker from "./EmojiPicker.jsx";
 
 export default function ChatPanel({ messages, myUserId, onSend }) {
   const [input, setInput] = useState("");
   const chatEndRef = useRef(null);
+  const inputRef = useRef(null);
+
+  const handleEmojiSelect = useCallback((emoji) => {
+    const el = inputRef.current;
+    if (el) {
+      const start = el.selectionStart;
+      const end = el.selectionEnd;
+      setInput((prev) => prev.slice(0, start) + emoji + prev.slice(end));
+      requestAnimationFrame(() => {
+        el.selectionStart = el.selectionEnd = start + emoji.length;
+        el.focus();
+      });
+    }
+  }, []);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -29,14 +44,14 @@ export default function ChatPanel({ messages, myUserId, onSend }) {
             className={`flex ${msg.from === myUserId ? "justify-end" : "justify-start"}`}
           >
             <div
-              className={`max-w-xs rounded-lg px-4 py-2 text-sm ${
+              className={`max-w-[75%] break-words rounded-lg px-4 py-2 text-sm ${
                 msg.from === myUserId
                   ? "bg-primary text-white"
                   : "bg-card text-foreground"
               }`}
             >
               <p className="text-xs opacity-70">{msg.fromName}</p>
-              <p>{msg.text}</p>
+              <p className="whitespace-pre-wrap">{msg.text}</p>
             </div>
           </div>
         ))}
@@ -47,7 +62,9 @@ export default function ChatPanel({ messages, myUserId, onSend }) {
         onSubmit={handleSubmit}
         className="flex items-center gap-2 border-t border-border p-3"
       >
+        <EmojiPicker onSelect={handleEmojiSelect} />
         <input
+          ref={inputRef}
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
