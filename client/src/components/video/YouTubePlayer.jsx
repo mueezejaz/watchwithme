@@ -55,6 +55,7 @@ const YouTubePlayer = forwardRef(function YouTubePlayer(
         playerVars: {
           autoplay: 0,
           controls: 1,
+          fs: 0,
           modestbranding: 1,
           rel: 0,
           disablekb: 1,

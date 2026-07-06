@@ -25,7 +25,12 @@ function RoomLayoutInner({
   const [addVideoOpen, setAddVideoOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("chat");
+  const [showSidebarInFullscreen, setShowSidebarInFullscreen] = useState(false);
+  const [fullscreenMode, setFullscreenMode] = useState("off"); // "off" | "native" | "css"
   const onDataCbRef = useRef(null);
+  const sectionRef = useRef(null);
+
+  const isFullscreen = fullscreenMode !== "off";
 
   const stableOnDataMessage = useCallback(
     (msg) => onDataCbRef.current?.(msg), []
@@ -61,6 +66,100 @@ function RoomLayoutInner({
 
   const participantCount = Object.keys(users).length + 1;
 
+  const toggleFullscreen = useCallback(() => {
+    if (!sectionRef.current) return;
+    if (fullscreenMode === "css") {
+      setFullscreenMode("off");
+      return;
+    }
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+      screen.orientation?.unlock();
+    } else {
+      const el = sectionRef.current;
+      if (el.requestFullscreen) {
+        el.requestFullscreen()
+          .then(() => screen.orientation?.lock("landscape").catch(() => {}))
+          .catch(() => setFullscreenMode("css"));
+      } else {
+        setFullscreenMode("css");
+      }
+    }
+  }, [fullscreenMode]);
+
+  useEffect(() => {
+    const handleChange = () => {
+      if (document.fullscreenElement) {
+        setFullscreenMode("native");
+      } else if (fullscreenMode === "native") {
+        setFullscreenMode("off");
+        screen.orientation?.unlock();
+      }
+    };
+    document.addEventListener("fullscreenchange", handleChange);
+    return () => document.removeEventListener("fullscreenchange", handleChange);
+  }, [fullscreenMode]);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape" && fullscreenMode === "css") {
+        setFullscreenMode("off");
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [fullscreenMode]);
+
+  useEffect(() => {
+    if (!isFullscreen) {
+      setShowSidebarInFullscreen(false);
+    }
+  }, [isFullscreen]);
+
+  const sidebarContent = (
+    <>
+      <Toolbar
+        className="flex items-center justify-center gap-1 border-b border-border px-3 py-2"
+        isMicOn={isMicOn}
+        toggleMic={toggleMic}
+        onAddVideo={() => setAddVideoOpen(true)}
+        onInvite={() => setInviteOpen(true)}
+      />
+
+      <Tabs defaultValue="chat" value={activeTab} onValueChange={setActiveTab} className="flex min-h-0 flex-1 flex-col">
+        <div className="flex justify-center border-b border-border px-3 py-2">
+          <TabsList activeValue={activeTab} onValueChange={setActiveTab}>
+            <TabsTrigger value="chat" activeValue={activeTab} onValueChange={setActiveTab} className="gap-1.5">
+              <MessageIcon size={14} />
+              Chat
+            </TabsTrigger>
+            <TabsTrigger value="participants" activeValue={activeTab} onValueChange={setActiveTab} className="gap-1.5">
+              <UsersIcon size={14} />
+              Members
+            </TabsTrigger>
+          </TabsList>
+        </div>
+
+        <TabsContent value="chat" activeValue={activeTab} className="flex flex-col">
+          <ChatPanel
+            messages={messages}
+            myUserId={myUserId}
+            onSend={handleSendChat}
+          />
+        </TabsContent>
+
+        <TabsContent value="participants" activeValue={activeTab} className="flex flex-col">
+          <ParticipantsPanel
+            users={users}
+            myName={myName}
+            soundLevel={soundLevel}
+            isMicOn={isMicOn}
+          />
+        </TabsContent>
+      </Tabs>
+    </>
+  );
+
   return (
     <div className="flex h-screen flex-col bg-background">
       <header className="flex items-center justify-between border-b border-border px-4 py-3 md:px-6">
@@ -73,67 +172,48 @@ function RoomLayoutInner({
       </header>
 
       <div className="flex flex-1 flex-col overflow-hidden md:flex-row">
-        <section className="relative flex flex-col md:flex-1 md:min-w-0">
-          <div className="flex-1 p-4 md:p-6">
+        <section
+          ref={sectionRef}
+          className={`relative flex ${isFullscreen ? "flex-row" : "flex-col"} flex-1 md:min-w-0`}
+          style={fullscreenMode === "css" ? { position: "fixed", inset: 0, zIndex: 50, background: "#000" } : undefined}
+        >
+          <div className={`relative min-w-0 ${isFullscreen ? "flex-1 p-0" : "flex-shrink-0 max-h-[55vh] p-4 md:flex-1 md:max-h-none md:p-6"}`}>
             {videoId ? (
               <ReactPlayerWrapper
                 isRemoteAction={isRemoteAction}
                 sendVideoSync={sendVideoSync}
+                isFullscreen={isFullscreen}
+                showSidebarInFullscreen={showSidebarInFullscreen}
+                onToggleSidebar={() => setShowSidebarInFullscreen((s) => !s)}
+                onToggleFullscreen={toggleFullscreen}
               />
             ) : (
               <VideoPlaceholder onAddVideo={() => setAddVideoOpen(true)} />
             )}
           </div>
 
-          <Toolbar
-            className="flex items-center justify-center gap-1 border-t border-border px-4 py-2 md:hidden"
-            isMicOn={isMicOn}
-            toggleMic={toggleMic}
-            onAddVideo={() => setAddVideoOpen(true)}
-            onInvite={() => setInviteOpen(true)}
-          />
+          {!isFullscreen && (
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden border-t border-border md:hidden">
+              {sidebarContent}
+            </div>
+          )}
+
+          {isFullscreen && (
+            <div
+              className={`flex h-full flex-col bg-background/95 shadow-lg backdrop-blur-sm border-r border-border shrink-0 overflow-hidden transition-all duration-300 ${
+                showSidebarInFullscreen
+                  ? "w-80 max-w-[85vw] opacity-100"
+                  : "w-0 max-w-0 opacity-0"
+              }`}
+            >
+              {sidebarContent}
+            </div>
+          )}
+
         </section>
 
-        <aside className="flex min-h-0 flex-col overflow-hidden border-border md:w-80 md:border-l">
-          <Toolbar
-            className="hidden items-center justify-center gap-1 border-b border-border px-3 py-2 md:flex"
-            isMicOn={isMicOn}
-            toggleMic={toggleMic}
-            onAddVideo={() => setAddVideoOpen(true)}
-            onInvite={() => setInviteOpen(true)}
-          />
-
-          <Tabs defaultValue="chat" value={activeTab} onValueChange={setActiveTab} className="flex min-h-0 flex-1 flex-col">
-            <div className="flex justify-center border-b border-border px-3 py-2">
-              <TabsList activeValue={activeTab} onValueChange={setActiveTab}>
-                <TabsTrigger value="chat" activeValue={activeTab} onValueChange={setActiveTab} className="gap-1.5">
-                  <MessageIcon size={14} />
-                  Chat
-                </TabsTrigger>
-                <TabsTrigger value="participants" activeValue={activeTab} onValueChange={setActiveTab} className="gap-1.5">
-                  <UsersIcon size={14} />
-                  Members
-                </TabsTrigger>
-              </TabsList>
-            </div>
-
-            <TabsContent value="chat" activeValue={activeTab} className="flex flex-col">
-              <ChatPanel
-                messages={messages}
-                myUserId={myUserId}
-                onSend={handleSendChat}
-              />
-            </TabsContent>
-
-            <TabsContent value="participants" activeValue={activeTab} className="flex flex-col">
-              <ParticipantsPanel
-                users={users}
-                myName={myName}
-                soundLevel={soundLevel}
-                isMicOn={isMicOn}
-              />
-            </TabsContent>
-          </Tabs>
+        <aside className="hidden min-h-0 flex-col overflow-hidden border-border md:flex md:w-80 md:border-l">
+          {sidebarContent}
         </aside>
       </div>
 

@@ -1,8 +1,12 @@
 import { useRef, useCallback, useEffect } from "react";
 import { useVideo } from "../../context/VideoContext.jsx";
 import YouTubePlayer from "./YouTubePlayer.jsx";
+import { MessageIcon, MaximizeIcon, MinimizeIcon } from "../../lib/icons.jsx";
 
-export default function ReactPlayerWrapper({ isRemoteAction, sendVideoSync, onReady }) {
+export default function ReactPlayerWrapper({
+  isRemoteAction, sendVideoSync, onReady,
+  isFullscreen, showSidebarInFullscreen, onToggleSidebar, onToggleFullscreen,
+}) {
   const { videoId, isPlaying, setIsPlaying, volume, playerRef, initialTimeRef } = useVideo();
   const wrapperRef = useRef(null);
 
@@ -81,7 +85,7 @@ export default function ReactPlayerWrapper({ isRemoteAction, sendVideoSync, onRe
   return (
     <div
       ref={wrapperRef}
-      className="relative aspect-video w-full bg-black overflow-hidden rounded-lg"
+      className={`relative bg-black overflow-hidden ${isFullscreen ? "h-full w-full" : "aspect-video w-full rounded-lg group"}`}
       onDoubleClick={handleDoubleClick}
     >
       <YouTubePlayer
@@ -95,6 +99,24 @@ export default function ReactPlayerWrapper({ isRemoteAction, sendVideoSync, onRe
         onSeeked={handleSeeked}
         onReady={onReady}
       />
+
+      {isFullscreen && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onToggleSidebar?.(); }}
+          className="absolute bottom-20 right-4 z-30 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white shadow-lg transition-transform hover:scale-110 active:scale-95"
+          title={showSidebarInFullscreen ? "Close sidebar" : "Open sidebar"}
+        >
+          <MessageIcon size={22} />
+        </button>
+      )}
+
+      <button
+        onClick={(e) => { e.stopPropagation(); onToggleFullscreen?.(); }}
+        className="absolute bottom-2 right-2 z-30 flex h-9 w-9 items-center justify-center rounded-md bg-black/60 text-white opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100 hover:bg-black/80"
+        title={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+      >
+        {isFullscreen ? <MinimizeIcon size={16} /> : <MaximizeIcon size={16} />}
+      </button>
     </div>
   );
 }
