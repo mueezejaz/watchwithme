@@ -5,24 +5,16 @@ import EmojiPicker from "./EmojiPicker.jsx";
 
 export default function ChatPanel({ messages, myUserId, onSend }) {
   const [input, setInput] = useState("");
+  const [sendCount, setSendCount] = useState(0);
   const chatEndRef = useRef(null);
   const inputRef = useRef(null);
 
   const handleEmojiSelect = useCallback((emoji) => {
-    const el = inputRef.current;
-    if (el) {
-      const start = el.selectionStart;
-      const end = el.selectionEnd;
-      setInput((prev) => prev.slice(0, start) + emoji + prev.slice(end));
-      requestAnimationFrame(() => {
-        el.selectionStart = el.selectionEnd = start + emoji.length;
-        el.focus();
-      });
-    }
+    setInput((prev) => prev + emoji);
   }, []);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    chatEndRef.current?.scrollIntoView({ block: "end" });
   }, [messages]);
 
   const handleSubmit = (e) => {
@@ -30,11 +22,15 @@ export default function ChatPanel({ messages, myUserId, onSend }) {
     if (!input.trim()) return;
     onSend(input.trim());
     setInput("");
+    setSendCount((c) => c + 1);
+    requestAnimationFrame(() => {
+      inputRef.current?.scrollIntoView({ block: "nearest" });
+    });
   };
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex-1 space-y-3 overflow-y-auto p-4">
+      <div className="flex-1 space-y-3 overflow-y-auto p-4 [overflow-anchor:auto]">
         {messages.length === 0 && (
           <p className="text-center text-sm text-text-secondary">No messages yet. Say hello!</p>
         )}
@@ -62,7 +58,7 @@ export default function ChatPanel({ messages, myUserId, onSend }) {
         onSubmit={handleSubmit}
         className="flex items-center gap-2 border-t border-border p-3"
       >
-        <EmojiPicker onSelect={handleEmojiSelect} />
+        <EmojiPicker onSelect={handleEmojiSelect} closeSignal={sendCount} />
         <input
           ref={inputRef}
           type="text"

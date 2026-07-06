@@ -10,6 +10,7 @@ import ReactPlayerWrapper from "../video/ReactPlayerWrapper.jsx";
 import VideoPlaceholder from "../video/VideoPlaceholder.jsx";
 import Toolbar from "./Toolbar.jsx";
 import ChatPanel from "./ChatPanel.jsx";
+import ChatNotification from "./ChatNotification.jsx";
 import ParticipantsPanel from "./ParticipantsPanel.jsx";
 import AddVideoDialog from "./AddVideoDialog.jsx";
 import InviteDialog from "./InviteDialog.jsx";
@@ -140,7 +141,7 @@ function RoomLayoutInner({
           </TabsList>
         </div>
 
-        <TabsContent value="chat" activeValue={activeTab} className="flex flex-col">
+        <TabsContent value="chat" activeValue={activeTab} className="flex min-h-0 flex-col overflow-visible">
           <ChatPanel
             messages={messages}
             myUserId={myUserId}
@@ -192,15 +193,20 @@ function RoomLayoutInner({
             )}
           </div>
 
+          <ChatNotification
+            messages={messages}
+            active={isFullscreen && !showSidebarInFullscreen}
+          />
+
           {!isFullscreen && (
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden border-t border-border md:hidden">
+            <div className="flex min-h-0 flex-1 flex-col border-t border-border md:hidden">
               {sidebarContent}
             </div>
           )}
 
           {isFullscreen && (
             <div
-              className={`flex h-full flex-col bg-background/95 shadow-lg backdrop-blur-sm border-r border-border shrink-0 overflow-hidden transition-all duration-300 ${
+              className={`flex h-full flex-col bg-background/95 shadow-lg backdrop-blur-sm border-r border-border shrink-0 transition-all duration-300 ${
                 showSidebarInFullscreen
                   ? "w-80 max-w-[85vw] opacity-100"
                   : "w-0 max-w-0 opacity-0"
@@ -212,7 +218,7 @@ function RoomLayoutInner({
 
         </section>
 
-        <aside className="hidden min-h-0 flex-col overflow-hidden border-border md:flex md:w-80 md:border-l">
+        <aside className="hidden min-h-0 flex-col border-border md:flex md:w-80 md:border-l">
           {sidebarContent}
         </aside>
       </div>
