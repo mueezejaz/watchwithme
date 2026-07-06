@@ -5,7 +5,7 @@ export default function useMediaDevices() {
   const [selectedDeviceId, setSelectedDeviceId] = useState(null);
   const [stream, setStream] = useState(null);
   const [soundLevel, setSoundLevel] = useState(0);
-  const [isMicOn, setIsMicOn] = useState(false);
+  const [isMicOn, setIsMicOn] = useState(true);
   const [permissionGranted, setPermissionGranted] = useState(false);
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
