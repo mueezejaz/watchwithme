@@ -54,6 +54,9 @@ export function TabsTrigger({ value, activeValue, onValueChange, children, class
 }
 
 export function TabsContent({ value, activeValue, children, className }) {
-  if (activeValue !== value) return null;
-  return <div className={cn("flex-1 overflow-y-auto", className)}>{children}</div>;
+  return (
+    <div className={cn("flex-1 overflow-y-auto", className, activeValue !== value && "hidden")}>
+      {children}
+    </div>
+  );
 }

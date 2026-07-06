@@ -6,15 +6,15 @@ export default function useVideoSync({ sendDataToAll }) {
     videoId, setVideoId,
     isPlaying, setIsPlaying,
     setCurrentTime,
-    playerRef, hasInited,
+    playerRef, hasInited, initialTimeRef,
     clearVideo,
   } = useVideo();
 
   const isRemoteAction = useRef(false);
 
-  const sendVideoSync = useCallback((action) => {
-    const time = playerRef.current?.getCurrentTime?.() ?? 0;
-    sendDataToAll({ type: "video-sync", action, currentTime: time, videoId });
+  const sendVideoSync = useCallback((action, time) => {
+    const currentTime = time ?? playerRef.current?.getCurrentTime?.() ?? 0;
+    sendDataToAll({ type: "video-sync", action, currentTime, videoId });
   }, [sendDataToAll, playerRef, videoId]);
 
   const sendChangeVideo = useCallback((newVideoId) => {
@@ -38,18 +38,16 @@ export default function useVideoSync({ sendDataToAll }) {
       case "video-sync": {
         if (!data.videoId) break;
         isRemoteAction.current = true;
-        setVideoId(data.videoId);
         if (data.action === "play") {
           setIsPlaying(true);
           playerRef.current?.seekTo(data.currentTime, "seconds");
-          setTimeout(() => { playerRef.current?.seekTo(data.currentTime, "seconds"); }, 100);
         } else if (data.action === "pause") {
           setIsPlaying(false);
           playerRef.current?.seekTo(data.currentTime, "seconds");
         } else if (data.action === "seek") {
           playerRef.current?.seekTo(data.currentTime, "seconds");
         }
-        setTimeout(() => { isRemoteAction.current = false; }, 300);
+        setTimeout(() => { isRemoteAction.current = false; }, 2000);
         break;
       }
       case "change-video": {
@@ -57,7 +55,7 @@ export default function useVideoSync({ sendDataToAll }) {
         setVideoId(data.videoId);
         setIsPlaying(false);
         hasInited.current = false;
-        setTimeout(() => { isRemoteAction.current = false; }, 300);
+        setTimeout(() => { isRemoteAction.current = false; }, 2000);
         break;
       }
       case "sync-request": {
@@ -68,13 +66,10 @@ export default function useVideoSync({ sendDataToAll }) {
       case "sync-response": {
         if (videoId !== null) break;
         isRemoteAction.current = true;
+        initialTimeRef.current = data.currentTime;
         setVideoId(data.videoId);
         setIsPlaying(data.isPlaying);
-        playerRef.current?.seekTo(data.currentTime, "seconds");
-        setTimeout(() => {
-          playerRef.current?.seekTo(data.currentTime, "seconds");
-          isRemoteAction.current = false;
-        }, 300);
+        setTimeout(() => { isRemoteAction.current = false; }, 2000);
         break;
       }
     }
@@ -86,5 +81,5 @@ export default function useVideoSync({ sendDataToAll }) {
     return () => clearTimeout(timer);
   }, [videoId]);
 
-  return { handleDataMessage, isRemoteAction, sendVideoSync, sendChangeVideo, clearVideo };
+  return { handleDataMessage, isRemoteAction, sendVideoSync, sendChangeVideo, sendSyncRequest, clearVideo };
 }

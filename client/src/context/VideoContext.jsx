@@ -9,6 +9,7 @@ export function VideoProvider({ children }) {
   const [volume, setVolume] = useState(1);
   const playerRef = useRef(null);
   const hasInited = useRef(false);
+  const initialTimeRef = useRef(null);
 
   const clearVideo = useCallback(() => {
     setVideoId(null);
@@ -30,6 +31,7 @@ export function VideoProvider({ children }) {
         setVolume,
         playerRef,
         hasInited,
+        initialTimeRef,
         clearVideo,
       }}
     >

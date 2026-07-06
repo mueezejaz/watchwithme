@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useUsers } from "../../context/UsersContext.jsx";
 import { useMessages } from "../../context/MessagesContext.jsx";
 import { VideoProvider, useVideo } from "../../context/VideoContext.jsx";
@@ -31,16 +31,24 @@ function RoomLayoutInner({
     (msg) => onDataCbRef.current?.(msg), []
   );
 
-  const { sendMessageToAll, sendDataToAll } = useWebRTC({
+  const { connectedPeers, sendMessageToAll, sendDataToAll } = useWebRTC({
     localStream: stream, socket, roomId, myUserId, myName,
     onDataMessage: stableOnDataMessage,
   });
 
   const {
-    handleDataMessage, isRemoteAction, sendVideoSync, sendChangeVideo,
+    handleDataMessage, isRemoteAction, sendVideoSync, sendChangeVideo, sendSyncRequest,
   } = useVideoSync({ sendDataToAll });
 
   onDataCbRef.current = handleDataMessage;
+
+  const initialSyncSentRef = useRef(false);
+  useEffect(() => {
+    if (connectedPeers > 0 && !initialSyncSentRef.current) {
+      initialSyncSentRef.current = true;
+      sendSyncRequest();
+    }
+  }, [connectedPeers, sendSyncRequest]);
 
   const handleSendChat = useCallback((text) => {
     sendMessageToAll(text);
