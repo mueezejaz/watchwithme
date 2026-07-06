@@ -24,6 +24,7 @@ export default function useMediaDevices() {
       const userStream = await navigator.mediaDevices.getUserMedia({
         audio: true,
       });
+      userStream.getAudioTracks().forEach((track) => (track.enabled = isMicOn));
       setStream(userStream);
       setPermissionGranted(true);
 

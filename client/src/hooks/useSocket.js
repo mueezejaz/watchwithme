@@ -10,7 +10,7 @@ export default function useSocketHook(userId) {
   useEffect(() => {
     console.log("connetction");
     if (!userId) return;
-    const socketInstance = io(SERVER_URL, {
+    const socketInstance = io({
       auth: {
         userId,
       },

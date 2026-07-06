@@ -2,9 +2,14 @@ import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import cors from "cors";
+import { resolve, dirname } from "path";
+import { fileURLToPath } from "url";
 import registerSocket from "./socket/socket.index.js";
 
-const port = 3001;
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const distPath = resolve(__dirname, "..", "client", "dist");
+
+const port = process.env.PORT || 3001;
 const app = express();
 app.use(
   cors({
@@ -12,6 +17,7 @@ app.use(
     credentials: true,
   }),
 );
+app.use(express.static(distPath));
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
@@ -21,10 +27,11 @@ const io = new Server(server, {
   },
 });
 registerSocket(io);
-app.get("/", (req, res) => {
-  res.status(200).send("hello world");
+
+app.get("/{*path}", (req, res) => {
+  res.sendFile(resolve(distPath, "index.html"));
 });
 
 server.listen(port, () => {
-  console.log(`App started on port ${port}`);
+  console.log(`App started on port ${port}, serving ${distPath}`);
 });

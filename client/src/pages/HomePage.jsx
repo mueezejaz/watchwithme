@@ -1,8 +1,15 @@
 import { useState } from "react";
-import { useSocket } from "../context/SocketContext.jsx";
+import { useNavigate } from "react-router-dom";
+
 export default function HomePage() {
-  const [input, setinput] = useState("");
-  const { socket, error } = useSocket();
+  const [input, setInput] = useState("");
+  const navigate = useNavigate();
+
+  const handleSend = () => {
+    if (!input.trim()) return;
+    navigate(`/rooms/${input.trim()}`);
+  };
+
   return (
     <>
       <h1> hello world </h1>
@@ -11,16 +18,11 @@ export default function HomePage() {
         className="bg-red-900 text-blue-800 "
         value={input}
         onChange={(e) => {
-          setinput(e.target.value);
+          setInput(e.target.value);
         }}
+        onKeyDown={(e) => e.key === "Enter" && handleSend()}
       />
-      <button
-        onClick={() => {
-          socket.emit("message", input);
-        }}
-      >
-        send
-      </button>
+      <button onClick={handleSend}>send</button>
     </>
   );
 }

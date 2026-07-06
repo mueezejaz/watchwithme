@@ -168,7 +168,6 @@ export default function RoomPage() {
   const handleJoin = () => {
     if (!name.trim() || !permissionGranted) return;
     socket?.emit("join-room", { roomId: id, name: name.trim() });
-    if (!isMicOn) toggleMic();
     setHasJoined(true);
   };
 
