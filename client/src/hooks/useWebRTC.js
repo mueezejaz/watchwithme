@@ -4,7 +4,7 @@ import { useMessages } from "../context/MessagesContext.jsx";
 
 const ICE_SERVERS = [{ urls: "stun:stun.l.google.com:19302" }];
 
-export default function useWebRTC({ localStream, socket, roomId, myUserId, myName }) {
+export default function useWebRTC({ localStream, socket, roomId, myUserId, myName, onDataMessage }) {
   const [connectedPeers, setConnectedPeers] = useState(0);
   const { addUser, removeUser, updateUser } = useUsers();
   const { addMessage } = useMessages();
@@ -12,6 +12,7 @@ export default function useWebRTC({ localStream, socket, roomId, myUserId, myNam
   const peerConnections = useRef(new Map());
   const dataChannels = useRef(new Map());
   const pendingCandidates = useRef(new Map());
+  const makingOffer = useRef(false);
 
   const setupDataChannel = useCallback((targetUserId, channel) => {
     dataChannels.current.set(targetUserId, channel);
@@ -37,9 +38,10 @@ export default function useWebRTC({ localStream, socket, roomId, myUserId, myNam
             timestamp: Date.now(),
           });
         }
+        onDataMessage?.({ from: targetUserId, data });
       } catch {}
     };
-  }, [addMessage, updateUser]);
+  }, [addMessage, updateUser, onDataMessage]);
 
   const getOrCreatePC = useCallback((targetUserId) => {
     let pc = peerConnections.current.get(targetUserId);
@@ -105,6 +107,7 @@ export default function useWebRTC({ localStream, socket, roomId, myUserId, myNam
     setupDataChannel(targetUserId, channel);
 
     try {
+      makingOffer.current = true;
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
       socket?.emit("signal", {
@@ -113,6 +116,8 @@ export default function useWebRTC({ localStream, socket, roomId, myUserId, myNam
       });
     } catch (err) {
       console.error("Failed to create offer:", err);
+    } finally {
+      makingOffer.current = false;
     }
   }, [addUser, getOrCreatePC, setupDataChannel, socket, myName]);
 
@@ -131,6 +136,14 @@ export default function useWebRTC({ localStream, socket, roomId, myUserId, myNam
     });
   }, [myName]);
 
+  const sendDataToAll = useCallback((jsonData) => {
+    dataChannels.current.forEach((channel) => {
+      if (channel.readyState === "open") {
+        channel.send(JSON.stringify(jsonData));
+      }
+    });
+  }, []);
+
   useEffect(() => {
     if (!socket || !roomId) return;
 
@@ -138,7 +151,19 @@ export default function useWebRTC({ localStream, socket, roomId, myUserId, myNam
       if (data.type === "offer") {
         addUser(from, { name: data.fromName || from, connected: false, remoteStream: null });
         const pc = getOrCreatePC(from);
+
         try {
+          const offerCollision =
+            pc.signalingState !== "stable" && !makingOffer.current;
+
+          if (offerCollision) {
+            if (myUserId < from) {
+              await pc.setLocalDescription({ type: "rollback" });
+            } else {
+              return;
+            }
+          }
+
           await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
           const candidates = pendingCandidates.current.get(from) || [];
           await Promise.all(
@@ -157,7 +182,7 @@ export default function useWebRTC({ localStream, socket, roomId, myUserId, myNam
         }
       } else if (data.type === "answer") {
         const pc = peerConnections.current.get(from);
-        if (pc) {
+        if (pc && pc.signalingState === "have-local-offer") {
           try {
             await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
             const candidates = pendingCandidates.current.get(from) || [];
@@ -204,7 +229,7 @@ export default function useWebRTC({ localStream, socket, roomId, myUserId, myNam
       socket.off("user-joined", handleUserJoined);
       socket.off("user-left", handleUserLeft);
     };
-  }, [socket, roomId, getOrCreatePC, initiateConnection, cleanupPeer, addUser]);
+  }, [socket, roomId, getOrCreatePC, initiateConnection, cleanupPeer, addUser, myUserId]);
 
   useEffect(() => {
     return () => {
@@ -215,5 +240,5 @@ export default function useWebRTC({ localStream, socket, roomId, myUserId, myNam
     };
   }, []);
 
-  return { connectedPeers, sendMessage, sendMessageToAll };
+  return { connectedPeers, sendMessage, sendMessageToAll, sendDataToAll };
 }

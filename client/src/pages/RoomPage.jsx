@@ -10,131 +10,19 @@ import {
   CardFooter,
 } from "../components/ui/card.jsx";
 import { Button } from "../components/ui/button.jsx";
-import AudioCard from "../components/AudioCard.jsx";
+import { MicIcon, MicOffIcon } from "../lib/icons.jsx";
 import useMediaDevices from "../hooks/useMediaDevices.js";
-import useWebRTC from "../hooks/useWebRTC.js";
 import { useSocket } from "../context/SocketContext.jsx";
-import { UsersProvider, useUsers } from "../context/UsersContext.jsx";
-import { MessagesProvider, useMessages } from "../context/MessagesContext.jsx";
+import { UsersProvider } from "../context/UsersContext.jsx";
+import { MessagesProvider } from "../context/MessagesContext.jsx";
 import useLocalStorage from "../hooks/useLocalStorage.js";
-
-function MicIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="9" y="2" width="6" height="11" rx="3" ry="3" />
-      <path d="M5 10a7 7 0 0 0 14 0" />
-      <line x1="12" y1="19" x2="12" y2="22" />
-    </svg>
-  );
-}
-
-function MicOffIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="2" y1="2" x2="22" y2="22" />
-      <path d="M18.89 13.23A7.8 7.8 0 0 0 19 10v-1" />
-      <path d="M5 10v1a7 7 0 0 0 11.42 4.87" />
-      <line x1="12" y1="19" x2="12" y2="22" />
-      <rect x="9" y="2" width="6" height="11" rx="3" ry="3" />
-    </svg>
-  );
-}
-
-function SendIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M22 2L11 13" />
-      <path d="M22 2L15 22L11 13L2 9L22 2Z" />
-    </svg>
-  );
-}
-
-function RoomInner({ roomId, myUserId, myName, stream, soundLevel, isMicOn, toggleMic, devices, selectedDeviceId, changeDevice, socket }) {
-  const { users } = useUsers();
-  const { messages, addMessage } = useMessages();
-  const { sendMessageToAll } = useWebRTC({ localStream: stream, socket, roomId, myUserId, myName });
-  const [chatInput, setChatInput] = useState("");
-  const chatEndRef = useRef(null);
-
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  const handleSend = (e) => {
-    e.preventDefault();
-    if (!chatInput.trim()) return;
-    sendMessageToAll(chatInput.trim());
-    addMessage({ from: myUserId, fromName: myName, text: chatInput.trim(), timestamp: Date.now() });
-    setChatInput("");
-  };
-
-  const participantCount = Object.keys(users).length + 1;
-
-  return (
-    <div className="flex h-screen flex-col">
-      <header className="flex items-center justify-between border-b border-border px-6 py-3">
-        <div>
-          <h1 className="text-lg font-semibold">Room {roomId}</h1>
-          <p className="text-sm text-text-secondary">{participantCount} participant{participantCount !== 1 ? "s" : ""}</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <div className="h-2 w-24 overflow-hidden rounded-full bg-border">
-              <div className="h-full rounded-full transition-all duration-75" style={{
-                width: `${Math.max(soundLevel * 100, 2)}%`,
-                backgroundColor: isMicOn ? soundLevel > 0.6 ? "var(--accent)" : "var(--primary)" : "var(--border)",
-              }} />
-            </div>
-            <Button variant={isMicOn ? "default" : "secondary"} size="sm" onClick={toggleMic}>
-              {isMicOn ? <MicIcon /> : <MicOffIcon />}
-            </Button>
-          </div>
-          <select value={selectedDeviceId || ""} onChange={(e) => changeDevice(e.target.value)} className="max-w-40 rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground">
-            {devices.map((device) => (
-              <option key={device.deviceId} value={device.deviceId}>{device.label || `Mic ${device.deviceId.slice(0, 8)}`}</option>
-            ))}
-          </select>
-        </div>
-      </header>
-
-      <div className="flex flex-1 overflow-hidden">
-        <aside className="w-72 space-y-3 overflow-y-auto border-r border-border p-4">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-text-secondary">Participants</h2>
-          <AudioCard name={myName} isLocal soundLevel={soundLevel} isMicOn={isMicOn} />
-          {Object.entries(users).map(([userId, user]) => (
-            <AudioCard key={userId} name={user.name} remoteStream={user.remoteStream} />
-          ))}
-        </aside>
-
-        <main className="flex flex-1 flex-col">
-          <div className="flex-1 space-y-3 overflow-y-auto p-4">
-            {messages.length === 0 && <p className="text-center text-sm text-text-secondary">No messages yet. Say hello!</p>}
-            {messages.map((msg, i) => (
-              <div key={i} className={`flex ${msg.from === myUserId ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-xs rounded-lg px-4 py-2 text-sm ${msg.from === myUserId ? "bg-primary text-white" : "bg-card text-foreground"}`}>
-                  <p className="text-xs opacity-70">{msg.fromName}</p>
-                  <p>{msg.text}</p>
-                </div>
-              </div>
-            ))}
-            <div ref={chatEndRef} />
-          </div>
-
-          <form onSubmit={handleSend} className="flex items-center gap-2 border-t border-border p-4">
-            <input type="text" value={chatInput} onChange={(e) => setChatInput(e.target.value)} placeholder="Type a message..." className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-text-secondary focus:outline-none focus:ring-1 focus:ring-primary" />
-            <Button type="submit" size="sm" disabled={!chatInput.trim()}><SendIcon /></Button>
-          </form>
-        </main>
-      </div>
-    </div>
-  );
-}
+import RoomLayout from "../components/room/RoomLayout.jsx";
 
 function RoomJoined(props) {
   return (
     <UsersProvider>
       <MessagesProvider>
-        <RoomInner {...props} />
+        <RoomLayout {...props} />
       </MessagesProvider>
     </UsersProvider>
   );
@@ -181,9 +69,6 @@ export default function RoomPage() {
         soundLevel={soundLevel}
         isMicOn={isMicOn}
         toggleMic={toggleMic}
-        devices={devices}
-        selectedDeviceId={selectedDeviceId}
-        changeDevice={changeDevice}
         socket={socket}
       />
     );

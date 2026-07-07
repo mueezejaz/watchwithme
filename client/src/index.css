@@ -40,6 +40,27 @@
 
   --color-text-secondary: var(--text-secondary);
   --color-border: var(--border);
+
+  --animate-float-up: float-up 4.5s ease-out forwards;
+}
+
+@keyframes float-up {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.9);
+  }
+  15% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.95);
+  }
 }
 
 body {
