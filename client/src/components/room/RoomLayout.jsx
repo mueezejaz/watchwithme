@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { useUsers } from "../../context/UsersContext.jsx";
 import { useMessages } from "../../context/MessagesContext.jsx";
 import { VideoProvider, useVideo } from "../../context/VideoContext.jsx";
+import { PortalContext } from "../../context/PortalContext.jsx";
 import useWebRTC from "../../hooks/useWebRTC.js";
 import useVideoSync from "../../hooks/useVideoSync.js";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs.jsx";
@@ -33,6 +34,7 @@ function RoomLayoutInner({
   const onDataCbRef = useRef(null);
   const sectionRef = useRef(null);
   const prevMessagesLenRef = useRef(messages.length);
+  const [portalTarget, setPortalTarget] = useState(null);
 
   const isFullscreen = fullscreenMode !== "off";
 
@@ -211,6 +213,9 @@ function RoomLayoutInner({
           className={`relative flex min-h-0 ${isFullscreen ? "flex-row" : "flex-col"} flex-1 md:min-w-0`}
           style={fullscreenMode === "css" ? { position: "fixed", inset: 0, zIndex: 50, background: "#000" } : undefined}
         >
+          <div ref={(el) => { if (el) setPortalTarget(el); }} className="contents" />
+
+          <PortalContext.Provider value={portalTarget}>
           <div className={`relative min-w-0 ${isFullscreen ? "flex-1 p-0" : "flex-shrink-0 max-h-[55vh] p-4 md:flex-1 md:max-h-none md:p-6"}`}>
             {videoId ? (
               <ReactPlayerWrapper
@@ -251,6 +256,7 @@ function RoomLayoutInner({
             </div>
           )}
 
+          </PortalContext.Provider>
         </section>
 
         <aside className="hidden min-h-0 flex-col border-border md:flex md:w-80 md:border-l">
