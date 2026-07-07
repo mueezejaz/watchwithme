@@ -1,6 +1,6 @@
 import { useRef, useEffect } from "react";
 import { Card } from "./ui/card.jsx";
-import { MicIcon } from "../lib/icons.jsx";
+import { MicIcon, MicOffIcon } from "../lib/icons.jsx";
 
 export default function AudioCard({ name, remoteStream, isLocal, soundLevel, isMicOn }) {
   const audioRef = useRef(null);
@@ -32,26 +32,7 @@ export default function AudioCard({ name, remoteStream, isLocal, soundLevel, isM
           )}
         </p>
 
-        {isLocal && (
-          <div className="mt-1.5 flex items-center gap-2">
-            <div className="h-1.5 w-full max-w-28 overflow-hidden rounded-full bg-border">
-              <div
-                className="h-full rounded-full transition-all duration-75"
-                style={{
-                  width: `${Math.max((soundLevel || 0) * 100, 2)}%`,
-                  backgroundColor: isMicOn
-                    ? soundLevel > 0.6
-                      ? "var(--accent)"
-                      : "var(--primary)"
-                    : "var(--border)",
-                }}
-              />
-            </div>
-            <span className="text-xs text-text-secondary">
-              {Math.round((soundLevel || 0) * 100)}%
-            </span>
-          </div>
-        )}
+
       </div>
 
       <div className="flex items-center gap-1.5">
@@ -60,7 +41,7 @@ export default function AudioCard({ name, remoteStream, isLocal, soundLevel, isM
             remoteStream ? "bg-success" : "bg-border"
           }`}
         />
-        <MicIcon />
+        {isMicOn !== false ? <MicIcon /> : <MicOffIcon />}
       </div>
 
       {remoteStream && (

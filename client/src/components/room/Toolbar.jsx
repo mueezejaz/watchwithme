@@ -6,7 +6,7 @@ export default function Toolbar({ isMicOn, toggleMic, onAddVideo, onInvite, clas
     <div className={className}>
       <Button variant="ghost" size="sm" onClick={onAddVideo} title="Change video">
         <VideoIcon size={16} />
-        <span className="hidden sm:inline">Video</span>
+        <span className="hidden sm:inline">Change video</span>
       </Button>
 
       <Button

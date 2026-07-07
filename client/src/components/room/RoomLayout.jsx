@@ -19,7 +19,7 @@ function RoomLayoutInner({
   roomId, myUserId, myName, stream, soundLevel, isMicOn, toggleMic,
   socket,
 }) {
-  const { users } = useUsers();
+  const { users, updateUser } = useUsers();
   const { messages, addMessage } = useMessages();
   const { videoId } = useVideo();
 
@@ -46,15 +46,31 @@ function RoomLayoutInner({
     handleDataMessage, isRemoteAction, sendVideoSync, sendChangeVideo, sendSyncRequest,
   } = useVideoSync({ sendDataToAll });
 
-  onDataCbRef.current = handleDataMessage;
+  const handleAllDataMessages = useCallback(({ from, data }) => {
+    handleDataMessage?.({ from, data });
+    if (data.type === "mic-state") {
+      updateUser(from, { micOn: data.micOn });
+    }
+    if (data.type === "sync-request") {
+      sendDataToAll({ type: "mic-state", micOn: isMicOn });
+    }
+  }, [handleDataMessage, updateUser, sendDataToAll, isMicOn]);
+
+  onDataCbRef.current = handleAllDataMessages;
+
+  const handleToggleMic = useCallback(() => {
+    toggleMic();
+    sendDataToAll({ type: "mic-state", micOn: !isMicOn });
+  }, [toggleMic, sendDataToAll, isMicOn]);
 
   const initialSyncSentRef = useRef(false);
   useEffect(() => {
     if (connectedPeers > 0 && !initialSyncSentRef.current) {
       initialSyncSentRef.current = true;
       sendSyncRequest();
+      sendDataToAll({ type: "mic-state", micOn: isMicOn });
     }
-  }, [connectedPeers, sendSyncRequest]);
+  }, [connectedPeers, sendSyncRequest, sendDataToAll, isMicOn]);
 
   const handleSendChat = useCallback((text) => {
     sendMessageToAll(text);
@@ -122,7 +138,7 @@ function RoomLayoutInner({
       <Toolbar
         className="flex items-center justify-center gap-1 border-b border-border px-3 py-2"
         isMicOn={isMicOn}
-        toggleMic={toggleMic}
+        toggleMic={handleToggleMic}
         onAddVideo={() => setAddVideoOpen(true)}
         onInvite={() => setInviteOpen(true)}
       />

@@ -6,7 +6,7 @@ export default function ParticipantsPanel({ users, myName, soundLevel, isMicOn }
       <div className="space-y-2">
         <AudioCard name={myName} isLocal soundLevel={soundLevel} isMicOn={isMicOn} />
         {Object.entries(users).map(([userId, user]) => (
-          <AudioCard key={userId} name={user.name} remoteStream={user.remoteStream} />
+          <AudioCard key={userId} name={user.name} remoteStream={user.remoteStream} isMicOn={user.micOn} />
         ))}
       </div>
     </div>
