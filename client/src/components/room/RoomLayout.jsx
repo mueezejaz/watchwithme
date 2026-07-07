@@ -143,7 +143,7 @@ function RoomLayoutInner({
         onInvite={() => setInviteOpen(true)}
       />
 
-      <Tabs defaultValue="chat" value={activeTab} onValueChange={setActiveTab} className="flex min-h-0 flex-1 flex-col">
+      <Tabs defaultValue="chat" value={activeTab} onValueChange={setActiveTab} className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <div className="flex justify-center border-b border-border px-3 py-2">
           <TabsList activeValue={activeTab} onValueChange={setActiveTab}>
             <TabsTrigger value="chat" activeValue={activeTab} onValueChange={setActiveTab} className="gap-1.5">
@@ -157,7 +157,7 @@ function RoomLayoutInner({
           </TabsList>
         </div>
 
-        <TabsContent value="chat" activeValue={activeTab} className="flex min-h-0 flex-col overflow-visible">
+        <TabsContent value="chat" activeValue={activeTab} className="flex min-h-0 flex-col overflow-hidden">
           <ChatPanel
             messages={messages}
             myUserId={myUserId}
@@ -188,10 +188,10 @@ function RoomLayoutInner({
         </div>
       </header>
 
-      <div className="flex flex-1 flex-col overflow-hidden md:flex-row">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
         <section
           ref={sectionRef}
-          className={`relative flex ${isFullscreen ? "flex-row" : "flex-col"} flex-1 md:min-w-0`}
+          className={`relative flex min-h-0 ${isFullscreen ? "flex-row" : "flex-col"} flex-1 md:min-w-0`}
           style={fullscreenMode === "css" ? { position: "fixed", inset: 0, zIndex: 50, background: "#000" } : undefined}
         >
           <div className={`relative min-w-0 ${isFullscreen ? "flex-1 p-0" : "flex-shrink-0 max-h-[55vh] p-4 md:flex-1 md:max-h-none md:p-6"}`}>
