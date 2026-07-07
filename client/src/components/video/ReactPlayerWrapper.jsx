@@ -6,6 +6,7 @@ import { MessageIcon, MaximizeIcon, MinimizeIcon } from "../../lib/icons.jsx";
 export default function ReactPlayerWrapper({
   isRemoteAction, sendVideoSync, onReady,
   isFullscreen, showSidebarInFullscreen, onToggleSidebar, onToggleFullscreen,
+  unreadCount, onResetUnread,
 }) {
   const { videoId, isPlaying, setIsPlaying, volume, playerRef, initialTimeRef } = useVideo();
   const wrapperRef = useRef(null);
@@ -144,11 +145,18 @@ export default function ReactPlayerWrapper({
 
       {isFullscreen && (
         <button
-          onClick={(e) => { e.stopPropagation(); onToggleSidebar?.(); }}
-          className={`absolute bottom-20 right-4 z-30 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white shadow-lg transition-all duration-300 hover:scale-110 active:scale-95 ${!controlsVisible ? "opacity-0 pointer-events-none" : "opacity-100"}`}
+          onClick={(e) => { e.stopPropagation(); onResetUnread?.(); onToggleSidebar?.(); }}
+          className={`absolute bottom-20 right-4 z-30 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white shadow-lg transition-all duration-300 hover:scale-110 active:scale-95 ${!controlsVisible && !showSidebarInFullscreen ? "opacity-0 pointer-events-none" : "opacity-100"}`}
           title={showSidebarInFullscreen ? "Close sidebar" : "Open sidebar"}
         >
-          <MessageIcon size={22} />
+          <span className="relative">
+            <MessageIcon size={22} />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 flex min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
+          </span>
         </button>
       )}
 

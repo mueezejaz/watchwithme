@@ -28,9 +28,11 @@ function RoomLayoutInner({
   const [activeTab, setActiveTab] = useState("chat");
   const [masterVolume, setMasterVolume] = useState(1);
   const [showSidebarInFullscreen, setShowSidebarInFullscreen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [fullscreenMode, setFullscreenMode] = useState("off"); // "off" | "native" | "css"
   const onDataCbRef = useRef(null);
   const sectionRef = useRef(null);
+  const prevMessagesLenRef = useRef(messages.length);
 
   const isFullscreen = fullscreenMode !== "off";
 
@@ -134,6 +136,18 @@ function RoomLayoutInner({
     }
   }, [isFullscreen]);
 
+  useEffect(() => {
+    if (isFullscreen && !showSidebarInFullscreen && messages.length > prevMessagesLenRef.current) {
+      setUnreadCount((c) => c + 1);
+    }
+    prevMessagesLenRef.current = messages.length;
+  }, [messages.length, isFullscreen, showSidebarInFullscreen]);
+
+  const handleToggleSidebar = useCallback(() => {
+    setShowSidebarInFullscreen((s) => !s);
+    setUnreadCount(0);
+  }, []);
+
   const sidebarContent = (
     <>
       <Toolbar
@@ -204,8 +218,10 @@ function RoomLayoutInner({
                 sendVideoSync={sendVideoSync}
                 isFullscreen={isFullscreen}
                 showSidebarInFullscreen={showSidebarInFullscreen}
-                onToggleSidebar={() => setShowSidebarInFullscreen((s) => !s)}
+                onToggleSidebar={handleToggleSidebar}
                 onToggleFullscreen={toggleFullscreen}
+                unreadCount={unreadCount}
+                onResetUnread={() => setUnreadCount(0)}
               />
             ) : (
               <VideoPlaceholder onAddVideo={() => setAddVideoOpen(true)} />
