@@ -2,7 +2,7 @@ import { useRef, useEffect } from "react";
 import { Card } from "./ui/card.jsx";
 import { MicIcon, MicOffIcon } from "../lib/icons.jsx";
 
-export default function AudioCard({ name, remoteStream, isLocal, soundLevel, isMicOn }) {
+export default function AudioCard({ name, remoteStream, isLocal, soundLevel, isMicOn, volume = 1 }) {
   const audioRef = useRef(null);
 
   useEffect(() => {
@@ -11,6 +11,12 @@ export default function AudioCard({ name, remoteStream, isLocal, soundLevel, isM
       audioRef.current.play().catch(() => {});
     }
   }, [remoteStream]);
+
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = volume;
+    }
+  }, [volume]);
 
   return (
     <Card className="flex items-center gap-3 p-4">

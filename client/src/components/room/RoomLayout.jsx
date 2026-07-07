@@ -26,6 +26,7 @@ function RoomLayoutInner({
   const [addVideoOpen, setAddVideoOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("chat");
+  const [masterVolume, setMasterVolume] = useState(1);
   const [showSidebarInFullscreen, setShowSidebarInFullscreen] = useState(false);
   const [fullscreenMode, setFullscreenMode] = useState("off"); // "off" | "native" | "css"
   const onDataCbRef = useRef(null);
@@ -171,6 +172,8 @@ function RoomLayoutInner({
             myName={myName}
             soundLevel={soundLevel}
             isMicOn={isMicOn}
+            masterVolume={masterVolume}
+            onMasterVolumeChange={setMasterVolume}
           />
         </TabsContent>
       </Tabs>
