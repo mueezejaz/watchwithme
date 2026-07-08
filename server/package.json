@@ -6,7 +6,7 @@
   "author": "",
   "type": "module",
   "config": {
-    "production": true
+    "production": false
   },
   "main": "index.js",
   "scripts": {
