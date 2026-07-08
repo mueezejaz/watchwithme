@@ -1,5 +1,4 @@
-import { useEffect, useRef } from "react";
-import { useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import {
   Card,
@@ -10,6 +9,8 @@ import {
   CardFooter,
 } from "../components/ui/card.jsx";
 import { Button } from "../components/ui/button.jsx";
+import { Input } from "../components/ui/input.jsx";
+import { Alert, AlertDescription } from "../components/ui/alert.jsx";
 import { MicIcon, MicOffIcon } from "../lib/icons.jsx";
 import useMediaDevices from "../hooks/useMediaDevices.js";
 import { useSocket } from "../context/SocketContext.jsx";
@@ -32,12 +33,16 @@ export default function RoomPage() {
   const { id } = useParams();
   const [name, setName] = useState("");
   const [hasJoined, setHasJoined] = useState(false);
-  const { socket } = useSocket();
+  const [joinLoading, setJoinLoading] = useState(false);
+  const [joinError, setJoinError] = useState(null);
+  const { socket, error: socketError } = useSocket();
   const [myUserId] = useLocalStorage("id", () => null);
 
-  const { devices, selectedDeviceId, stream, soundLevel, isMicOn, permissionGranted, permissionDenied, isBlocked, error, requestPermission, toggleMic, changeDevice } = useMediaDevices();
+  const { devices, selectedDeviceId, stream, soundLevel, isMicOn, permissionGranted, permissionDenied, isBlocked, error: micError, requestPermission, toggleMic, changeDevice } = useMediaDevices();
 
   const requestCountRef = useRef(0);
+  const joinInFlightRef = useRef(false);
+  const hasRejoinedRef = useRef(false);
 
   useEffect(() => {
     requestPermission();
@@ -53,10 +58,76 @@ export default function RoomPage() {
     }
   }, [permissionDenied, isBlocked, requestPermission]);
 
+  useEffect(() => {
+    if (socketError) {
+      setJoinError(`Connection error: ${socketError.message || "Unable to connect to server"}`);
+    }
+  }, [socketError]);
+
+  const rejoinRoom = useCallback(() => {
+    if (!socket || !hasJoined || !name.trim()) return;
+    hasRejoinedRef.current = true;
+    socket.emit("join-room", { roomId: id, name: name.trim() }, (response) => {
+      if (!response?.success) {
+        setJoinError(response?.error || "Failed to re-join room after reconnection");
+      }
+    });
+  }, [socket, hasJoined, name, id]);
+
+  useEffect(() => {
+    if (!socket) return;
+    const onConnect = () => {
+      setJoinError(null);
+      if (hasJoined && !hasRejoinedRef.current) {
+        rejoinRoom();
+      }
+    };
+    const onDisconnect = () => {
+      if (hasJoined) {
+        setJoinError("Disconnected from server. Reconnecting...");
+      }
+    };
+    socket.on("connect", onConnect);
+    socket.on("disconnect", onDisconnect);
+    return () => {
+      socket.off("connect", onConnect);
+      socket.off("disconnect", onDisconnect);
+    };
+  }, [socket, hasJoined, rejoinRoom]);
+
+  useEffect(() => {
+    if (hasJoined) {
+      hasRejoinedRef.current = false;
+    }
+  }, [hasJoined]);
+
   const handleJoin = () => {
-    if (!name.trim() || !permissionGranted) return;
-    socket?.emit("join-room", { roomId: id, name: name.trim() });
-    setHasJoined(true);
+    if (!name.trim()) {
+      setJoinError("Please enter your name");
+      return;
+    }
+    if (!permissionGranted) {
+      setJoinError("Microphone access is required to join");
+      return;
+    }
+    if (!socket) {
+      setJoinError("Not connected to server. Please wait...");
+      return;
+    }
+    if (joinInFlightRef.current) return;
+    joinInFlightRef.current = true;
+    setJoinLoading(true);
+    setJoinError(null);
+
+    socket.emit("join-room", { roomId: id, name: name.trim() }, (response) => {
+      joinInFlightRef.current = false;
+      setJoinLoading(false);
+      if (response?.success) {
+        setHasJoined(true);
+      } else {
+        setJoinError(response?.error || "Failed to join room");
+      }
+    });
   };
 
   if (hasJoined) {
@@ -82,12 +153,24 @@ export default function RoomPage() {
           <CardDescription>Room: {id}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {joinError && (
+            <Alert variant="destructive">
+              <AlertDescription>{joinError}</AlertDescription>
+            </Alert>
+          )}
+
           <div className="space-y-2">
             <label className="text-sm font-medium">Your Name</label>
-            <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter your name" className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-text-secondary focus:outline-none focus:ring-1 focus:ring-primary" />
+            <Input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Enter your name"
+              disabled={joinLoading}
+            />
           </div>
 
-          {!permissionGranted && !permissionDenied && !error && (
+          {!permissionGranted && !permissionDenied && !micError && (
             <div className="flex items-center gap-2 rounded-md bg-card px-4 py-3">
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
               <p className="text-sm text-text-secondary">Requesting microphone access...</p>
@@ -118,14 +201,16 @@ export default function RoomPage() {
             </div>
           )}
 
-          {error && !isBlocked && permissionDenied && (
+          {micError && !isBlocked && permissionDenied && (
             <Button variant="outline" onClick={requestPermission} className="w-full">
               Retry Mic Access
             </Button>
           )}
 
-          {error && !permissionDenied && !isBlocked && (
-            <p className="text-sm text-error">{error}</p>
+          {micError && !permissionDenied && !isBlocked && (
+            <Alert variant="destructive">
+              <AlertDescription>{micError}</AlertDescription>
+            </Alert>
           )}
 
           {permissionGranted && (
@@ -162,7 +247,9 @@ export default function RoomPage() {
               {isMicOn ? "On" : "Off"}
             </Button>
           )}
-          <Button onClick={handleJoin} disabled={!name.trim() || !permissionGranted} className="flex-1">Join Room</Button>
+          <Button onClick={handleJoin} disabled={!name.trim() || !permissionGranted || joinLoading} className="flex-1">
+            {joinLoading ? "Joining..." : "Join Room"}
+          </Button>
         </CardFooter>
       </Card>
     </div>

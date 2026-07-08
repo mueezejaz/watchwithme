@@ -3,8 +3,10 @@ import { useUsers } from "../context/UsersContext.jsx";
 import { useMessages } from "../context/MessagesContext.jsx";
 
 const ICE_SERVERS = [{ urls: "stun:stun.l.google.com:19302" }];
+const MAX_RETRIES = 2;
+const RETRY_DELAY = 2000;
 
-export default function useWebRTC({ localStream, socket, roomId, myUserId, myName, onDataMessage }) {
+export default function useWebRTC({ localStream, socket, roomId, myUserId, myName, onDataMessage, onError }) {
   const [connectedPeers, setConnectedPeers] = useState(0);
   const { addUser, removeUser, updateUser } = useUsers();
   const { addMessage } = useMessages();
@@ -13,6 +15,7 @@ export default function useWebRTC({ localStream, socket, roomId, myUserId, myNam
   const dataChannels = useRef(new Map());
   const pendingCandidates = useRef(new Map());
   const makingOffer = useRef(false);
+  const retryCount = useRef(new Map());
 
   const setupDataChannel = useCallback((targetUserId, channel) => {
     dataChannels.current.set(targetUserId, channel);
@@ -96,6 +99,7 @@ export default function useWebRTC({ localStream, socket, roomId, myUserId, myNam
     }
     dataChannels.current.delete(userId);
     pendingCandidates.current.delete(userId);
+    retryCount.current.delete(userId);
     removeUser(userId);
   }, [removeUser]);
 
@@ -114,12 +118,21 @@ export default function useWebRTC({ localStream, socket, roomId, myUserId, myNam
         to: targetUserId,
         data: { type: "offer", offer: pc.localDescription, fromName: myName },
       });
+      retryCount.current.delete(targetUserId);
     } catch (err) {
-      console.error("Failed to create offer:", err);
+      const current = retryCount.current.get(targetUserId) || 0;
+      if (current < MAX_RETRIES) {
+        retryCount.current.set(targetUserId, current + 1);
+        onError?.(`Connection to ${targetName} failed, retrying... (${current + 1}/${MAX_RETRIES})`);
+        setTimeout(() => initiateConnection(targetUserId, targetName), RETRY_DELAY);
+      } else {
+        onError?.(`Failed to connect to ${targetName}. Please try refreshing.`);
+        cleanupPeer(targetUserId);
+      }
     } finally {
       makingOffer.current = false;
     }
-  }, [addUser, getOrCreatePC, setupDataChannel, socket, myName]);
+  }, [addUser, getOrCreatePC, setupDataChannel, socket, myName, onError, cleanupPeer]);
 
   const sendMessage = useCallback((targetUserId, text) => {
     const channel = dataChannels.current.get(targetUserId);
@@ -178,7 +191,7 @@ export default function useWebRTC({ localStream, socket, roomId, myUserId, myNam
             data: { type: "answer", answer: pc.localDescription },
           });
         } catch (err) {
-          console.error("Signal offer error:", err);
+          onError?.(`Connection error with ${data.fromName || from}: ${err.message}`);
         }
       } else if (data.type === "answer") {
         const pc = peerConnections.current.get(from);
@@ -191,7 +204,7 @@ export default function useWebRTC({ localStream, socket, roomId, myUserId, myNam
             );
             pendingCandidates.current.delete(from);
           } catch (err) {
-            console.error("Signal answer error:", err);
+            onError?.(`Connection error: ${err.message}`);
           }
         }
       } else if (data.type === "ice-candidate") {
@@ -200,7 +213,7 @@ export default function useWebRTC({ localStream, socket, roomId, myUserId, myNam
           try {
             await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
           } catch (err) {
-            console.error("ICE candidate error:", err);
+            onError?.(`Network error: ${err.message}`);
           }
         } else {
           if (!pendingCandidates.current.has(from)) {
@@ -229,7 +242,7 @@ export default function useWebRTC({ localStream, socket, roomId, myUserId, myNam
       socket.off("user-joined", handleUserJoined);
       socket.off("user-left", handleUserLeft);
     };
-  }, [socket, roomId, getOrCreatePC, initiateConnection, cleanupPeer, addUser, myUserId]);
+  }, [socket, roomId, getOrCreatePC, initiateConnection, cleanupPeer, addUser, myUserId, onError]);
 
   useEffect(() => {
     return () => {

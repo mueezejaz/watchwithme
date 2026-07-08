@@ -6,7 +6,9 @@ import { PortalContext } from "../../context/PortalContext.jsx";
 import useWebRTC from "../../hooks/useWebRTC.js";
 import useVideoSync from "../../hooks/useVideoSync.js";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs.jsx";
+import { Alert, AlertDescription } from "../ui/alert.jsx";
 import { MessageIcon, UsersIcon } from "../../lib/icons.jsx";
+import { Dialog } from "../ui/dialog.jsx";
 import ReactPlayerWrapper from "../video/ReactPlayerWrapper.jsx";
 import VideoPlaceholder from "../video/VideoPlaceholder.jsx";
 import Toolbar from "./Toolbar.jsx";
@@ -30,7 +32,9 @@ function RoomLayoutInner({
   const [masterVolume, setMasterVolume] = useState(1);
   const [showSidebarInFullscreen, setShowSidebarInFullscreen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [fullscreenMode, setFullscreenMode] = useState("off"); // "off" | "native" | "css"
+  const [fullscreenMode, setFullscreenMode] = useState("off");
+  const [webrtcErrors, setWebrtcErrors] = useState([]);
+  const [joiningRoom, setJoiningRoom] = useState(true);
   const onDataCbRef = useRef(null);
   const sectionRef = useRef(null);
   const prevMessagesLenRef = useRef(messages.length);
@@ -42,9 +46,14 @@ function RoomLayoutInner({
     (msg) => onDataCbRef.current?.(msg), []
   );
 
+  const handleWebrtcError = useCallback((error) => {
+    setWebrtcErrors((prev) => [...prev.slice(-4), error]);
+  }, []);
+
   const { connectedPeers, sendMessageToAll, sendDataToAll } = useWebRTC({
     localStream: stream, socket, roomId, myUserId, myName,
     onDataMessage: stableOnDataMessage,
+    onError: handleWebrtcError,
   });
 
   const {
@@ -67,6 +76,21 @@ function RoomLayoutInner({
     toggleMic();
     sendDataToAll({ type: "mic-state", micOn: !isMicOn });
   }, [toggleMic, sendDataToAll, isMicOn]);
+
+  const joiningResolvedRef = useRef(false);
+  useEffect(() => {
+    if (joiningResolvedRef.current) return;
+    if (connectedPeers > 0) {
+      joiningResolvedRef.current = true;
+      setJoiningRoom(false);
+      return;
+    }
+    const timer = setTimeout(() => {
+      joiningResolvedRef.current = true;
+      setJoiningRoom(false);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [connectedPeers]);
 
   const initialSyncSentRef = useRef(false);
   useEffect(() => {
@@ -198,6 +222,24 @@ function RoomLayoutInner({
 
   return (
     <div className="flex h-screen flex-col bg-background">
+      <Dialog open={joiningRoom}>
+        <div className="flex flex-col items-center gap-4 py-8">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <p className="text-lg font-medium text-foreground">Joining room...</p>
+          <p className="text-sm text-text-secondary">Establishing secure connection</p>
+        </div>
+      </Dialog>
+
+      {webrtcErrors.length > 0 && (
+        <div className="fixed top-4 right-4 z-[100] flex max-w-sm flex-col gap-2">
+          {webrtcErrors.map((err, i) => (
+            <Alert key={i} variant="destructive">
+              <AlertDescription>{err}</AlertDescription>
+            </Alert>
+          ))}
+        </div>
+      )}
+
       <header className="flex items-center justify-between border-b border-border px-4 py-3 md:px-6">
         <div className="min-w-0">
           <h1 className="truncate text-lg font-semibold">Room {roomId}</h1>
