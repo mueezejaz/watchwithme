@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
-
+const isProduction = process.env.npm_package_config_production === "true";
 export default function useSocketHook(userId) {
-  const SERVER_URL = import.meta.env.PROD
+  const SERVER_URL = isProduction
     ? "https://sync-watch-production.up.railway.app"
     : "http://localhost:3001";
   const [socket, setSocket] = useState(null);

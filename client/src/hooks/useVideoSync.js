@@ -63,6 +63,16 @@ export default function useVideoSync({ sendDataToAll }) {
         sendDataToAll({ type: "sync-response", videoId, isPlaying, currentTime: time });
         break;
       }
+      case "resync": {
+        if (!playerRef.current) break;
+        const localTime = playerRef.current.getCurrentTime();
+        if (data.currentTime > localTime + 1) {
+          isRemoteAction.current = true;
+          playerRef.current.seekTo(data.currentTime, "seconds");
+          setTimeout(() => { isRemoteAction.current = false; }, 2000);
+        }
+        break;
+      }
       case "sync-response": {
         if (videoId !== null) break;
         isRemoteAction.current = true;
@@ -80,6 +90,16 @@ export default function useVideoSync({ sendDataToAll }) {
     const timer = setTimeout(sendSyncRequest, 1500);
     return () => clearTimeout(timer);
   }, [videoId]);
+
+  useEffect(() => {
+    if (!videoId || !isPlaying) return;
+    const id = setInterval(() => {
+      if (!playerRef.current) return;
+      const t = playerRef.current.getCurrentTime();
+      sendDataToAll({ type: "resync", currentTime: t });
+    }, 5000);
+    return () => clearInterval(id);
+  }, [videoId, isPlaying, playerRef, sendDataToAll]);
 
   return { handleDataMessage, isRemoteAction, sendVideoSync, sendChangeVideo, sendSyncRequest, clearVideo };
 }
