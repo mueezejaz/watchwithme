@@ -29,7 +29,7 @@ const io = new Server(server, {
 registerSocket(io);
 
 app.get("/{*path}", (req, res) => {
-  res.sendFile(resolve(distPath, "index.html"));
+  res.sendFile(resolve(distPath, "new.html"));
 });
 
 server.listen(port, () => {
