@@ -7,7 +7,7 @@ import { SocketContextProvider } from "./context/SocketContext.jsx";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <BrowserRouter basename="/sync-watch">
+    <BrowserRouter basename={import.meta.env.BASE_URL === "/" ? undefined : import.meta.env.BASE_URL.replace(/\/$/, "")}>
       <SocketContextProvider>
         <App />
       </SocketContextProvider>

@@ -68,14 +68,14 @@ export default function registerSocket(io) {
     });
 
     socket.on("disconnect", () => {
-      const { roomId } = socket.data;
+      const { roomId, name } = socket.data;
       if (roomId && rooms.has(roomId)) {
         const room = rooms.get(roomId);
         room.delete(socket.id);
         if (room.size === 0) {
           rooms.delete(roomId);
         }
-        socket.to(roomId).emit("user-left", { userId });
+        socket.to(roomId).emit("user-left", { userId, name });
       }
     });
   });

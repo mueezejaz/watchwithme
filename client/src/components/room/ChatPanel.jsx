@@ -35,21 +35,29 @@ export default function ChatPanel({ messages, myUserId, onSend }) {
           <p className="text-center text-sm text-text-secondary">No messages yet. Say hello!</p>
         )}
         {messages.map((msg, i) => (
-          <div
-            key={i}
-            className={`flex ${msg.from === myUserId ? "justify-end" : "justify-start"}`}
-          >
-            <div
-              className={`max-w-[75%] break-words rounded-lg px-4 py-2 text-sm ${
-                msg.from === myUserId
-                  ? "bg-primary text-white"
-                  : "bg-card text-foreground"
-              }`}
-            >
-              <p className="text-xs opacity-70">{msg.fromName}</p>
-              <p className="whitespace-pre-wrap">{msg.text}</p>
+          msg.type === "system" ? (
+            <div key={i} className="flex justify-center">
+              <span className="rounded-full bg-card px-3 py-1 text-xs text-text-secondary shadow-sm">
+                {msg.text}
+              </span>
             </div>
-          </div>
+          ) : (
+            <div
+              key={i}
+              className={`flex ${msg.from === myUserId ? "justify-end" : "justify-start"}`}
+            >
+              <div
+                className={`max-w-[75%] break-words rounded-lg px-4 py-2 text-sm ${
+                  msg.from === myUserId
+                    ? "bg-primary text-white"
+                    : "bg-card text-foreground"
+                }`}
+              >
+                <p className="text-xs opacity-70">{msg.fromName}</p>
+                <p className="whitespace-pre-wrap">{msg.text}</p>
+              </div>
+            </div>
+          )
         ))}
         <div ref={chatEndRef} />
       </div>
