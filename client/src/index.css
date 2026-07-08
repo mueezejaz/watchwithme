@@ -18,7 +18,13 @@
   --error: #8b4a3a;
 
   --text-secondary: #a3acb0;
+  --text-tertiary: #6f787c;
   --border: #333a3f;
+  --border-soft: #2a2f34;
+
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
 }
 
 @theme inline {
