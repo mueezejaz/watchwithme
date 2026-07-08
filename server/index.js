@@ -7,7 +7,7 @@ import { fileURLToPath } from "url";
 import registerSocket from "./socket/socket.index.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const isDev = process.env.npm_package_config_production !== "true";
+const isDev = process.env.NODE_ENV !== "production" && process.env.npm_package_config_production !== "true";
 
 const port = process.env.PORT || 3001;
 const app = express();
