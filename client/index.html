@@ -2,8 +2,16 @@
 <html lang="en" class="h-full antialiased">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Sync Watch</title>
+    <script>
+      function setVh() {
+        document.documentElement.style.setProperty("--vh", window.innerHeight * 0.01 + "px");
+      }
+      setVh();
+      window.addEventListener("resize", setVh);
+      window.addEventListener("orientationchange", setVh);
+    </script>
   </head>
   <body class="min-h-full flex flex-col">
     <div id="root"></div>

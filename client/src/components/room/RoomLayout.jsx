@@ -221,7 +221,7 @@ function RoomLayoutInner({
   );
 
   return (
-    <div className="flex h-screen flex-col bg-background">
+    <div className="flex flex-col bg-background app-container">
       <Dialog open={joiningRoom}>
         <div className="flex flex-col items-center gap-4 py-8">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
