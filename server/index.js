@@ -9,8 +9,7 @@ import { fileURLToPath } from "url";
 import registerSocket from "./socket/socket.index.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const isDev =
-  process.env.npm_package_config_production !== "true";
+const isDev = !process.env.PRODUCTION;
 
 export const redis = isDev
   ? null
