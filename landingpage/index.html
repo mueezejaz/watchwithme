@@ -948,7 +948,7 @@
             <button
               class="btn-primary"
               id="create-room-btn"
-              onclick="window.location.href = '/indexxx.html'"
+              onclick="window.location.href = '/app.html'"
             >
               Create Room
             </button>
@@ -1213,7 +1213,11 @@
             The best way to watch movies together online. No sign-up. No
             downloads. Just press play, together.
           </p>
-          <button class="btn-primary reveal" id="create-room-btn-2">
+          <button
+            onclick="window.location.href = '/app.html'"
+            class="btn-primary reveal"
+            id="create-room-btn-2"
+          >
             Create Room
           </button>
         </div>
@@ -1269,15 +1273,6 @@
         const suffix = Math.random().toString(36).substring(2, 6);
         return adj + "-" + noun + "-" + suffix;
       }
-
-      function createRoom() {
-        const roomId = generateRoomId();
-        window.location.href = "/rooms/" + roomId;
-      }
-
-      document
-        .getElementById("create-room-btn-2")
-        .addEventListener("click", createRoom);
 
       document.addEventListener("DOMContentLoaded", function () {
         const cards = document.querySelectorAll(".feature-card");
