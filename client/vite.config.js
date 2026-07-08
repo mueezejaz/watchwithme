@@ -5,6 +5,6 @@ import tailwindcss from "@tailwindcss/vite";
 const isProduction = process.env.PRODUCTION === "true";
 
 export default defineConfig({
-  base: isProduction ? "/sync-watch/" : "/",
+  base: isProduction ? "/watchwithme/" : "/",
   plugins: [react(), tailwindcss()],
 });
