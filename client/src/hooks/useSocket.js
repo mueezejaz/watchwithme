@@ -16,7 +16,7 @@ export default function useSocketHook(userId) {
       },
       reconnectionDelay: 2000,
       reconnectionDelayMax: 10000,
-      timeout: 5000,
+      timeout: 10000,
     });
 
     socketInstance.on("connect", () => {
