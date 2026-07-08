@@ -244,6 +244,82 @@
         width: 100%;
       }
 
+      /* hamburger */
+      .hamburger {
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: 40px;
+        height: 40px;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        padding: 6px;
+        gap: 5px;
+        z-index: 35;
+        border-radius: 8px;
+        transition: background 0.2s ease;
+      }
+      .hamburger:hover {
+        background: var(--card);
+      }
+      .hamburger span {
+        display: block;
+        width: 22px;
+        height: 2px;
+        background: var(--foreground);
+        border-radius: 2px;
+        transition: transform 0.25s ease, opacity 0.2s ease;
+        transform-origin: center;
+      }
+      .hamburger.open span:nth-child(1) {
+        transform: translateY(7px) rotate(45deg);
+      }
+      .hamburger.open span:nth-child(2) {
+        opacity: 0;
+      }
+      .hamburger.open span:nth-child(3) {
+        transform: translateY(-7px) rotate(-45deg);
+      }
+
+      /* mobile nav overlay */
+      .mobile-nav {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 25;
+        background: rgba(23, 26, 28, 0.96);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 32px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+      }
+      .mobile-nav.open {
+        display: flex;
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .mobile-nav a {
+        font-family: var(--font-display);
+        font-size: 1.6rem;
+        font-weight: 440;
+        color: var(--text-secondary);
+        transition: color 0.2s ease;
+        padding: 12px 24px;
+      }
+      .mobile-nav a:hover {
+        color: var(--foreground);
+      }
+      body.no-scroll {
+        overflow: hidden;
+      }
+
       /* ---------- hero ---------- */
       .hero {
         padding: 100px 24px 60px;
@@ -800,6 +876,7 @@
       footer {
         padding: 48px 24px 40px;
         text-align: center;
+        scroll-margin-top: 80px;
       }
       .footer-links {
         display: flex;
@@ -839,6 +916,81 @@
         .nav-links {
           display: none;
         }
+        .hamburger {
+          display: flex;
+        }
+        .nav-inner {
+          padding: 14px 20px;
+        }
+        .container {
+          padding: 0 20px;
+        }
+        section {
+          padding: 72px 0;
+        }
+        .hero {
+          padding: 72px 0 48px;
+        }
+        .cta-band {
+          padding: 64px 0;
+        }
+        .section-head {
+          margin-bottom: 40px;
+        }
+        .hero-title {
+          max-width: 100%;
+        }
+        .chat-float {
+          left: 12px;
+          bottom: 12px;
+          padding: 6px 10px;
+          font-size: 0.72rem;
+        }
+        .reaction-float {
+          right: 14px;
+          top: 14px;
+          font-size: 1.1rem;
+        }
+      }
+      @media (max-width: 640px) {
+        .features-grid {
+          gap: 14px;
+        }
+        .feature-card {
+          padding: 22px 20px;
+        }
+        .step h4 {
+          font-size: 1rem;
+        }
+        .step p {
+          font-size: 0.85rem;
+        }
+        .footer-links {
+          flex-wrap: wrap;
+          gap: 16px;
+        }
+        .steps {
+          gap: 28px 16px;
+        }
+        .sync-rings {
+          width: 72px;
+          height: 72px;
+        }
+        .play-glow {
+          width: 44px;
+          height: 44px;
+        }
+        .play-glow svg {
+          width: 16px;
+          height: 16px;
+        }
+        @keyframes syncPulse {
+          0% { width: 44px; height: 44px; opacity: 0.9; }
+          70%, 100% { width: 100px; height: 100px; opacity: 0; }
+        }
+        .room-preview-screen {
+          aspect-ratio: 16 / 9;
+        }
       }
       @media (max-width: 560px) {
         .features-grid {
@@ -848,17 +1000,233 @@
           grid-template-columns: 1fr;
         }
         .hero {
-          padding: 68px 20px 48px;
+          padding: 56px 0 36px;
         }
         section {
-          padding: 68px 20px;
+          padding: 56px 0;
         }
         .room-preview {
-          margin-top: 44px;
-          padding: 14px 14px 16px;
+          margin-top: 36px;
+          padding: 12px 12px 14px;
+          border-radius: 14px;
         }
-        .chat-float span {
-          display: none;
+        .room-preview-bar {
+          padding: 0 2px 12px;
+        }
+        .chat-float {
+          max-width: calc(100% - 40px);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .hero-desc {
+          font-size: 0.96rem;
+        }
+        .btn-primary {
+          padding: 15px 32px;
+          font-size: 0.96rem;
+          width: 100%;
+          max-width: 320px;
+        }
+        .hero-eyebrow {
+          font-size: 0.65rem;
+        }
+        .hero-eyebrow::before,
+        .hero-eyebrow::after {
+          width: 14px;
+        }
+        .cta-band {
+          padding: 52px 0;
+        }
+        footer {
+          padding: 32px 0 28px;
+        }
+        .section-title {
+          font-size: clamp(1.5rem, 6vw, 1.8rem);
+        }
+        .brand {
+          font-size: 1.05rem;
+        }
+        .brand-mark {
+          width: 26px;
+          height: 26px;
+        }
+        .brand-mark svg {
+          width: 14px;
+          height: 14px;
+        }
+      }
+      @media (max-width: 480px) {
+        .container {
+          padding: 0 16px;
+        }
+        .nav-inner {
+          padding: 12px 16px;
+        }
+        .hero {
+          padding: 48px 0 28px;
+        }
+        .hero-title {
+          font-size: clamp(2rem, 8vw, 2.6rem);
+        }
+        h1.hero-title {
+          margin: 16px 0 14px;
+        }
+        .hero-desc {
+          margin-bottom: 28px;
+        }
+        .room-preview {
+          margin-top: 28px;
+          padding: 10px 10px 12px;
+        }
+        .room-preview-screen {
+          aspect-ratio: 4 / 3;
+          border-radius: 10px;
+        }
+        .live-badge {
+          font-size: 0.62rem;
+        }
+        .avatar-stack span {
+          width: 20px;
+          height: 20px;
+        }
+        .chat-float {
+          left: 8px;
+          bottom: 8px;
+          padding: 5px 8px;
+          font-size: 0.65rem;
+          border-radius: 999px;
+        }
+        .reaction-float {
+          right: 10px;
+          top: 10px;
+          font-size: 0.95rem;
+        }
+        .feature-card {
+          padding: 18px 16px;
+        }
+        .feature-icon {
+          width: 36px;
+          height: 36px;
+          margin-bottom: 14px;
+        }
+        .feature-icon svg {
+          width: 17px;
+          height: 17px;
+        }
+        .feature-card h3 {
+          font-size: 1.02rem;
+        }
+        .feature-card p {
+          font-size: 0.86rem;
+        }
+        .step-num {
+          width: 30px;
+          height: 30px;
+          font-size: 0.7rem;
+          margin-bottom: 14px;
+        }
+        .footer-links {
+          font-size: 0.82rem;
+        }
+        .btn-primary {
+          padding: 14px 28px;
+          font-size: 0.92rem;
+          border-radius: 10px;
+        }
+      }
+      @media (max-width: 380px) {
+        .container {
+          padding: 0 12px;
+        }
+        .nav-inner {
+          padding: 10px 12px;
+        }
+        .hero {
+          padding: 40px 0 20px;
+        }
+        section {
+          padding: 44px 0;
+        }
+        .hero-title {
+          font-size: clamp(1.7rem, 9vw, 2rem);
+        }
+        .hero-desc {
+          font-size: 0.88rem;
+        }
+        .cta-band h2 {
+          font-size: clamp(1.4rem, 6vw, 1.8rem);
+        }
+      }
+
+      @media (max-height: 520px) and (orientation: landscape) {
+        .hero {
+          padding: 40px 0 20px;
+        }
+        h1.hero-title {
+          font-size: clamp(1.6rem, 4vw, 2.2rem);
+          margin: 10px 0 10px;
+        }
+        .hero-desc {
+          margin-bottom: 20px;
+          font-size: 0.88rem;
+          max-width: 480px;
+        }
+        .room-preview {
+          margin-top: 24px;
+          padding: 10px;
+        }
+        .room-preview-screen {
+          aspect-ratio: 16 / 7;
+        }
+        .btn-primary {
+          padding: 12px 24px;
+          font-size: 0.88rem;
+        }
+        .section-head {
+          margin-bottom: 24px;
+        }
+        section {
+          padding: 44px 0;
+        }
+        .features-grid {
+          gap: 12px;
+        }
+        .feature-card {
+          padding: 16px 14px;
+        }
+        .avatar-stack span {
+          width: 18px;
+          height: 18px;
+        }
+        .sync-rings {
+          width: 60px;
+          height: 60px;
+        }
+        .play-glow {
+          width: 36px;
+          height: 36px;
+        }
+        .play-glow svg {
+          width: 14px;
+          height: 14px;
+        }
+        @keyframes syncPulse {
+          0% { width: 36px; height: 36px; opacity: 0.9; }
+          70%, 100% { width: 80px; height: 80px; opacity: 0; }
+        }
+        .brave-note {
+          margin-top: 12px;
+          font-size: 0.75rem;
+        }
+        .hero-hint {
+          font-size: 0.72rem;
+        }
+        .step {
+          padding: 0 !important;
+        }
+        .step::after {
+          display: none !important;
         }
       }
 
@@ -927,14 +1295,25 @@
         <nav class="nav-links">
           <a href="#features">Features</a>
           <a href="#how-it-works">How it works</a>
+          <a href="#footer">Contact</a>
         </nav>
+        <button class="hamburger" id="hamburger" aria-label="Menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
       </div>
     </header>
+
+    <nav class="mobile-nav" id="mobile-nav">
+      <a href="#features">Features</a>
+      <a href="#how-it-works">How it works</a>
+      <a href="#footer">Contact</a>
+    </nav>
 
     <main>
       <section class="hero">
         <div class="container">
-          <div class="hero-eyebrow">free virtual watch party platform</div>
           <h1 class="hero-title">
             Watch together.<br /><em>Feel</em> together.
           </h1>
@@ -1224,16 +1603,19 @@
       </section>
     </main>
 
-    <footer>
+    <footer id="footer">
       <div class="container">
         <div class="footer-links">
-          <a href="#">GitHub</a>
-          <a href="#">About</a>
+          <a href="https://github.com/mueezejaz" target="_blank" rel="noopener noreferrer">GitHub</a>
+          <a href="https://instagram.com/ratrokiller" target="_blank" rel="noopener noreferrer">Instagram</a>
           <a href="#features">Features</a>
         </div>
         <div class="footer-note">
           The best free watch party website to watch movies together online. ©
           2026 Watch With Me
+        </div>
+        <div class="footer-note" style="margin-top: 8px;">
+          made by team mh
         </div>
       </div>
     </footer>
@@ -1356,6 +1738,24 @@
             const y = (e.clientY / window.innerHeight) * 100;
             spotlight.style.setProperty("--mx", x + "%");
             spotlight.style.setProperty("--my", y + "%");
+          });
+        }
+
+        /* hamburger menu */
+        const hamburger = document.getElementById("hamburger");
+        const mobileNav = document.getElementById("mobile-nav");
+        if (hamburger && mobileNav) {
+          hamburger.addEventListener("click", () => {
+            const open = mobileNav.classList.toggle("open");
+            hamburger.classList.toggle("open");
+            document.body.classList.toggle("no-scroll", open);
+          });
+          mobileNav.querySelectorAll("a").forEach((link) => {
+            link.addEventListener("click", () => {
+              mobileNav.classList.remove("open");
+              hamburger.classList.remove("open");
+              document.body.classList.remove("no-scroll");
+            });
           });
         }
       });
