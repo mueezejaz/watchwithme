@@ -2,15 +2,15 @@ import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 
 export default function useSocketHook(userId) {
-  const SERVER_URL = "http://localhost:3001";
-  console.log("this is ", SERVER_URL);
+  const SERVER_URL = import.meta.env.PROD
+    ? "https://sync-watch-production.up.railway.app"
+    : "http://localhost:3001";
   const [socket, setSocket] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    console.log("connetction");
     if (!userId) return;
-    const socketInstance = io({
+    const socketInstance = io(SERVER_URL, {
       auth: {
         userId,
       },
