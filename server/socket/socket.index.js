@@ -1,4 +1,19 @@
+import { redis } from "../index.js";
+
 const rooms = new Map();
+
+async function trackRoomCreated(roomId) {
+  if (!redis) return;
+  await Promise.all([
+    redis.incr("stats:total_rooms"),
+    redis.sadd("stats:active_rooms", roomId),
+  ]);
+}
+
+async function trackRoomDeleted(roomId) {
+  if (!redis) return;
+  await redis.srem("stats:active_rooms", roomId);
+}
 
 export default function registerSocket(io) {
   io.on("connection", (socket) => {
@@ -24,7 +39,8 @@ export default function registerSocket(io) {
         });
       }
 
-      if (!rooms.has(roomId)) {
+      const isNewRoom = !rooms.has(roomId);
+      if (isNewRoom) {
         rooms.set(roomId, new Map());
       }
       const room = rooms.get(roomId);
@@ -48,9 +64,11 @@ export default function registerSocket(io) {
 
       const prevRoomId = socket.data.roomId;
       if (prevRoomId && rooms.has(prevRoomId)) {
-        rooms.get(prevRoomId).delete(socket.id);
-        if (rooms.get(prevRoomId).size === 0) {
+        const prevRoom = rooms.get(prevRoomId);
+        prevRoom.delete(socket.id);
+        if (prevRoom.size === 0) {
           rooms.delete(prevRoomId);
+          trackRoomDeleted(prevRoomId);
         }
       }
 
@@ -58,6 +76,10 @@ export default function registerSocket(io) {
       socket.data.roomId = roomId;
       socket.data.name = trimmedName;
       room.set(socket.id, { userId, name: trimmedName });
+
+      if (isNewRoom) {
+        trackRoomCreated(roomId);
+      }
 
       socket.to(roomId).emit("user-joined", { userId, name: trimmedName });
       ack?.({ success: true });
@@ -74,6 +96,7 @@ export default function registerSocket(io) {
         room.delete(socket.id);
         if (room.size === 0) {
           rooms.delete(roomId);
+          trackRoomDeleted(roomId);
         }
         socket.to(roomId).emit("user-left", { userId, name });
       }

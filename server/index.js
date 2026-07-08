@@ -1,13 +1,24 @@
+import "dotenv/config";
 import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import cors from "cors";
+import { Redis } from "@upstash/redis";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 import registerSocket from "./socket/socket.index.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const isDev = process.env.NODE_ENV !== "production" && process.env.npm_package_config_production !== "true";
+const isDev =
+  process.env.NODE_ENV !== "production" &&
+  process.env.npm_package_config_production !== "true";
+
+export const redis = isDev
+  ? null
+  : new Redis({
+      url: process.env.UPSTASH_REDIS_URL,
+      token: process.env.UPSTASH_REDIS_TOKEN,
+    });
 
 const port = process.env.PORT || 3001;
 const allowedOrigins = [
@@ -41,5 +52,8 @@ if (isDev) {
 
 server.listen(port, () => {
   console.log(`App started on port ${port}`);
-  if (isDev) console.log(`Serving static files from ${resolve(__dirname, "..", "client", "dist")}`);
+  if (isDev)
+    console.log(
+      `Serving static files from ${resolve(__dirname, "..", "client", "dist")}`,
+    );
 });
