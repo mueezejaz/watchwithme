@@ -10,7 +10,6 @@ import registerSocket from "./socket/socket.index.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const isDev =
-  process.env.NODE_ENV !== "production" &&
   process.env.npm_package_config_production !== "true";
 
 export const redis = isDev
