@@ -120,7 +120,7 @@ export default function ReactPlayerWrapper({
   return (
     <div
       ref={wrapperRef}
-      className={`relative bg-black overflow-hidden ${isFullscreen ? "h-full w-full" : "aspect-video w-full rounded-lg group"}`}
+      className={`relative bg-black ${isFullscreen ? "h-full w-full" : "aspect-video max-w-full max-h-full w-auto h-auto m-auto rounded-lg group"}`}
       onDoubleClick={handleDoubleClick}
       onMouseMove={resetInactivityTimer}
       onMouseDown={resetInactivityTimer}

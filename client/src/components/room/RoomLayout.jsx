@@ -258,7 +258,7 @@ function RoomLayoutInner({
           <div ref={(el) => { if (el) setPortalTarget(el); }} className="contents" />
 
           <PortalContext.Provider value={portalTarget}>
-          <div className={`relative min-w-0 ${isFullscreen ? "flex-1 p-0" : "flex-shrink-0 max-h-[55vh] p-4 md:flex-1 md:max-h-none md:p-6"}`}>
+          <div className={`relative min-h-0 min-w-0 ${isFullscreen ? "flex-1 p-0" : "flex-shrink-0 max-h-[55vh] p-4 md:flex-1 md:max-h-none md:p-6"} flex items-center justify-center overflow-hidden`}>
             {videoId ? (
               <ReactPlayerWrapper
                 isRemoteAction={isRemoteAction}
