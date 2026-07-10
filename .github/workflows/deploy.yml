@@ -34,8 +34,7 @@ jobs:
         run: npm run build
         working-directory: client
         env:
-          PRODUCTION: ${{ vars.PRODUCTION }}
-          VITE_PRODUCTION: ${{ vars.PRODUCTION }}
+          PRODUCTION: "true"
 
       - name: Rename React app to app.html
         run: mv client/dist/index.html client/dist/app.html
