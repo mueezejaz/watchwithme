@@ -3,7 +3,7 @@ import { io } from "socket.io-client";
 const isProduction = import.meta.env.VITE_PRODUCTION === "true";
 export default function useSocketHook(userId) {
   const SERVER_URL = isProduction
-    ? "https://sync-watch-production.up.railway.app"
+    ? "https://watchwithme-production.up.railway.app"
     : "http://localhost:3001";
   const [socket, setSocket] = useState(null);
   const [error, setError] = useState(null);
