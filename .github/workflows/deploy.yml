@@ -35,6 +35,7 @@ jobs:
         working-directory: client
         env:
           PRODUCTION: "true"
+          VITE_PRODUCTION: "true"
 
       - name: Rename React app to app.html
         run: mv client/dist/index.html client/dist/app.html
